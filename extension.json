@@ -66,6 +66,11 @@
 		"ext.wikiForum": {
 			"styles": "resources/css/styles.css",
 			"position": "top"
+		},
+		"ext.wikiForum.js": {
+			"scripts": [
+				"resources/js/scripts.js"
+			]
 		}
 	},
 	"ResourceFileModulePaths": {

@@ -19,18 +19,37 @@ table.mw-wikiforum-headerrow {
 	background: transparent;
 }
 
-table.mw-wikiforum-footerrow {
-	width: 100%;
+.mw-wikiforum-footerrow {
 	font-size: 10px;
 	font-family: Verdana, Arial, sans-serif;
+	margin: auto;
 	margin-bottom: 1.2em;
-	text-transform: uppercase;
+	background: #eee;
+	padding: 8px;
+	display: block;
+	border: 1px solid #ccc;
 }
 td.mw-wikiforum-leftside {
 	text-align: left;
 }
 td.mw-wikiforum-rightside {
 	text-align: right;
+}
+.mw-wikiforum-pagenumber, .mw-wikiforum-pagenumber-current {
+	padding: 0px 4px 2px 4px;
+	border-radius: 4px;
+	text-align: center;
+}
+.mw-wikiforum-pagenumber {
+	background: #fff;
+	color: #444;
+}
+.mw-wikiforum-pagenumber:hover {
+	background: #ddd;
+}
+.mw-wikiforum-pagenumber-current {
+	background: #68f;
+	color: #fff;
 }
 
 table.mw-wikiforum-title {
@@ -161,6 +180,8 @@ td.mw-wikiforum-thread-sub {
 	padding: 0px 10px;
 	border: 1px solid #cef2e0;
 	background: #f0f0ea;
+	display: block;
+	margin-top: 10px;
 }
 
 /* Search box */
@@ -214,8 +235,11 @@ blockquote span {
 }
 
 /* Align SocialProfile avatars to the right side and give it a bit of padding */
-.wikiforum-avatar-image {
+.wikiforum-avatar-container {
 	float: right;
+}
+
+.wikiforum-avatar-image {
 	padding-bottom: 5px;
 }
 
@@ -228,6 +252,11 @@ blockquote span {
 td.mw-wikiforum-thread-main,
 td.mw-wikiforum-thread-sub {
 	word-wrap: break-word;
-	word-break: break-all;
+	/* word-break: break-all; */
 	table-layout: fixed;
 }
+
+td.mw-wikiforum-thread-main pre, td.mw-wikiforum-thread-sub pre {
+	white-space: pre-wrap;
+}
+

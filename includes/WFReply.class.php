@@ -65,8 +65,17 @@ class WFReply extends ContextSource {
 		return new WFReply( $sql );
 	}
 
+ 	/**
+  	 * Get the timestamp of when this reply was posted 
+  	 *
+  	 * @return string
+  	 */
+  	function getPostedTimestamp() {
+  		return $this->data->wfr_posted_timestamp;
+  	}
+
 	/**
-	 * Get the timestamp of when this thread was edited (if it was edited)
+	 * Get the timestamp of when this reply was edited (if it was edited)
 	 *
 	 * @return string
 	 */
@@ -201,6 +210,9 @@ class WFReply extends ContextSource {
 			return WikiForumClass::showErrorMessage( 'wikiforum-error-delete', 'wikiforum-error-general' );
 		}
 
+		# Update reply counts and latests for thread and forum.
+		$this->getThread()->updateLast(1);
+
 		return $this->getThread()->show();
 	}
 
@@ -225,11 +237,11 @@ class WFReply extends ContextSource {
 		if (
 			$user->isAnon() ||
 			(
+				!$user->isAllowed( 'wikiforum-moderator' ) &&
 				(
-					$user->getId() != $this->getPostedById() &&
+					$user->getId() != $this->getPostedById() ||
 					$this->getThread()->isClosed()
-				) ||
-				!$user->isAllowed( 'wikiforum-moderator' )
+				)
 			)
 		) {
 			return WikiForumClass::showErrorMessage( 'wikiforum-error-edit', 'wikiforum-error-no-rights' );
@@ -299,16 +311,16 @@ class WFReply extends ContextSource {
 		$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/comments_add.png" title="' . wfMessage( 'wikiforum-quote' )->text() . '" />';
 
 		if (
+			$user->isAllowed( 'wikiforum-moderator' )
+			||
 			(
 				( $user->getId() == $thread->getPostedById() || $user->getId() == $this->getPostedById() )
 				&& !$thread->isClosed()
 			)
-			||
-			$user->isAllowed( 'wikiforum-moderator' )
 		) {
 			$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'editreply', 'reply' => $this->getId() ) ) ) . '#writereply">';
 			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/comment_edit.png" title="' . wfMessage( 'wikiforum-edit-reply' )->text() . '" />';
-			$editButtons .= '</a> <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'deletereply', 'reply' => $this->getId() ) ) ) . '">';
+			$editButtons .= '</a> <a href="javascript:confirmNavigation(\'' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'deletereply', 'reply' => $this->getId() ) ) ) . '\',\'' . htmlspecialchars( wfMessage( 'wikiforum-delete-reply-confirmation' ) ) . '\')">';
 			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/comment_delete.png" title="' . wfMessage( 'wikiforum-delete-reply' )->text() . '" />';
 		}
 
@@ -344,7 +356,8 @@ class WFReply extends ContextSource {
 		if ( WikiForumClass::useCaptcha() ) {
 			$captcha = ConfirmEditHooks::getInstance();
 			$captcha->setTrigger( 'wikiforum' );
-			if ( !$captcha->passCaptchaFromRequest( $wgRequest, $wgUser ) ) {
+			$captcha->trigger = 'wikiforum';
+			if ( !ConfirmEditHooks::getInstance()->passCaptcha() ) {
 				$output = WikiForumClass::showErrorMessage('wikiforum-error-add', 'wikiforum-error-captcha');
 				$thread->preloadText = $text;
 				$output .= $thread->show();
@@ -389,6 +402,7 @@ class WFReply extends ContextSource {
 			'wikiforum_threads',
 			array(
 				'wft_reply_count = wft_reply_count + 1',
+				'wff_last_thread_name' => $thread->getName(),
 				'wft_last_post_timestamp' => $timestamp,
 				'wft_last_post_user' => $wgUser->getId(),
 				'wft_last_post_user_ip' => $wgRequest->getIP(),

@@ -111,6 +111,15 @@ class WFForum extends ContextSource {
 		return $this->data->wff_forum;
 	}
 
+ 	/**
+	 * Get the title of the last thread of the last post in this forum
+	 *
+	 * @return string
+	 */
+	function getLastThreadName() {
+		return $this->data->wff_last_thread_name;
+	}
+
 	/**
 	 * Get the timestamp of the last post in this forum
 	 *
@@ -200,7 +209,8 @@ class WFForum extends ContextSource {
 		if ( $this->getLastPostTimestamp() > 0 ) {
 			return WikiForumGui::showByInfo(
 				$this->getLastPostTimestamp(),
-				$this->getLastPostUser()
+				$this->getLastPostUser(),
+				$this->getLastThreadName()
 			);
 		} else {
 			return '';
@@ -213,6 +223,10 @@ class WFForum extends ContextSource {
 	 * @return string: the URL
 	 */
 	function getURL() {
+		global $wgWikiForumForumPath;
+
+		if ( $wgWikiForumForumPath ) return str_replace("$1", $this->getId(), $wgWikiForumForumPath);
+
 		$page = SpecialPage::getTitleFor( 'WikiForum' );
 
 		return htmlspecialchars( $page->getFullURL( array( 'forum' => $this->getId() ) ) );
@@ -377,6 +391,75 @@ class WFForum extends ContextSource {
 
 		return $this->show();
 	}
+
+ 	/**
+  	 * Update last reply after a deletion.
+  	 *
+  	 * @return bool: Success
+  	 */
+  	function updateLast($decReplies, $decThreads) {	
+  		$dbw = wfGetDB( DB_MASTER );
+  
+  		$reply = $dbw->selectRow(
+  			'wikiforum_threads',
+  			array(
+  				'wft_thread_name',
+  				'wft_last_post_user',
+  				'wft_last_post_user_ip',
+  				'wft_last_post_timestamp',
+  			),
+  			array( 'wft_forum' => $this->getId() ),
+  			__METHOD__,
+  			array( 'LIMIT' => 1, 'ORDER BY' => 'wft_last_post_timestamp desc' )
+  		);
+  
+  		$thread = $dbw->selectRow(
+  			'wikiforum_threads',
+  			array(
+  				'wft_thread_name',
+  				'wft_user',
+  				'wft_user_ip',
+  				'wft_posted_timestamp',
+  			),
+  			array( 'wft_forum' => $this->getId() ),
+  			__METHOD__,
+  			array( 'LIMIT' => 1, 'ORDER BY' => 'wft_posted_timestamp desc' )
+  		);
+  
+  		if ( !$thread || !$thread->wft_user
+  		 || $reply && $reply->wft_last_post_user
+  		 && $reply->wft_last_post_timestamp >= $thread->wft_posted_timestamp) {
+  			$row = $reply;
+  		} elseif ( !$reply || !$reply->wft_last_post_user
+  		 || $thread && $thread->wft_user
+  		 && $thread->wft_posted_timestamp > $reply->wft_last_post_timestamp) {
+  			$row = $thread;
+  			$row->wft_last_post_user = $thread->wft_user;
+  			$row->wft_last_post_user_ip = $thread->wft_user_ip;
+  			$row->wft_last_post_timestamp = $thread->wft_posted_timestamp;
+  		} else {
+  			$row = new stdClass;
+  			$row->wft_thread_name = '';
+  			$row->wft_last_post_user = 0;
+  			$row->wft_last_post_user_ip = '';
+  			$row->wft_last_post_timestamp = 0;
+  		}
+  
+  		// Update the forum table so that the data shown on Special:WikiForum is up to date
+  		return $dbw->update(
+  			'wikiforum_forums',
+  			array(
+  				"wff_reply_count = wff_reply_count - $decReplies",
+  				"wff_thread_count = wff_thread_count - $decThreads",
+  				'wff_last_thread_name' => $row->wft_thread_name,
+  				'wff_last_post_user' => $row->wft_last_post_user,
+  				'wff_last_post_user_ip' => $row->wft_last_post_user_ip,
+  				'wff_last_post_timestamp' => $row->wft_last_post_timestamp
+  			),
+  			array( 'wff_forum' => $this->getId() ),
+  			__METHOD__
+  		);
+  	}
 
 	/**
 	 * Show this forum, including frames, headers, et al.

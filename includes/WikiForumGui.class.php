@@ -82,30 +82,26 @@ class WikiForumGui {
 		$specialPage = SpecialPage::getTitleFor( 'WikiForum' );
 
 		if ( $maxissues / $limit > 1 ) {
+			$output = '<div class="mw-wikiforum-footerrow">' .
+				wfMessage( 'wikiforum-pages' )->numParams( $maxissues / $limit )->text() .
+				wfMessage( 'word-separator' )->plain();
+
 			for ( $i = 1; $i < ( $maxissues / $limit ) + 1; $i++ ) {
 				$urlParams = array_merge( array( 'page' => $i ), $params );
 
-				if ( $i <= 9 ) {
-					$pageNumber = '0' . $i;
-				} else {
-					$pageNumber = $i;
-				}
-
-				$output = '<table class="mw-wikiforum-footerrow"><tr><td class="mw-wikiforum-leftside">' .
-				wfMessage( 'wikiforum-pages' )
-				->numParams( count( $pageNumber ) )->text() .
-				wfMessage( 'word-separator' )->plain();
-
 				if ( $i != $page + 1 ) {
-					$output .= '<a href="' . htmlspecialchars( $specialPage->getFullURL( $urlParams ) ) . '">' . $pageNumber . '</a>';
+					$output .= '<a class="mw-wikiforum-pagenumber" href="' . htmlspecialchars( $specialPage->getFullURL( $urlParams ) ) . '">' . $i . '</a>';
 				} else {
-					$output .= '[' . $pageNumber . ']';
+					$output .= '<span class="mw-wikiforum-pagenumber-current">'
+						.  $i
+						.  '</span>';
 				}
 
 				$output .= wfMessage( 'word-separator' )->plain();
 			}
 			$output .= '</td><td class="mw-wikiforum-rightside">';
 			$output .= '</td></tr></table>';
+			$output .= '</div>';
 		}
 		return $output;
 	}
@@ -251,7 +247,7 @@ class WikiForumGui {
 					<td>' . $toolbar . '</td>
 				</tr>
 				<tr>
-					<td><textarea name="text" id="wpTextbox1" style="height: ' . $height . ';">' . $text_prev . '</textarea></td>
+					<td><textarea name="text" id="wpTextbox1" style="height: ' . $height . ';">' . str_replace('&', '&amp;', $text_prev) . '</textarea></td>
 				</tr>';
 			if ( WikiForumClass::useCaptcha() ) {
 				$output .= '<tr><td>' . WikiForumClass::getCaptcha( $wgOut ) . '</td></tr>';
@@ -312,8 +308,7 @@ class WikiForumGui {
 	 * @return string
 	 */
 	static function showPostedInfo( $timestamp, User $user ) {
-		$userLink = WikiForumClass::showUserLink( $user );
-		return self::showInfo( 'wikiforum-posted', $timestamp, $userLink, $user->getName() );
+		return self::showInfo( 'wikiforum-posted', $timestamp, $user );
 	}
 
 	/**
@@ -324,7 +319,7 @@ class WikiForumGui {
 	 * @return string
 	 */
 	static function showPlainPostedInfo( $timestamp, User $user ) {
-		return self::showInfo( 'wikiforum-posted', $timestamp, $user->getName(), $user->getName() );
+		return self::showInfo( 'wikiforum-posted', $timestamp, $user, true );
 	}
 
 	/**
@@ -335,8 +330,7 @@ class WikiForumGui {
 	 * @return string
 	 */
 	static function showEditedInfo( $timestamp, User $user ) {
-		$userLink = WikiForumClass::showUserLink( $user );
-		return self::showInfo( 'wikiforum-edited', $timestamp, $userLink, $user->getName() );
+		return self::showInfo( 'wikiforum-edited', $timestamp, $user );
 	}
 
 	/**
@@ -346,9 +340,8 @@ class WikiForumGui {
 	 * @param User $user
 	 * @return string
 	 */
-	static function showByInfo( $timestamp, User $user ) {
-		$userLink = WikiForumClass::showUserLink( $user );
-		return self::showInfo( 'wikiforum-by', $timestamp, $userLink, $user->getName() );
+	static function showByInfo( $timestamp, User $user, $threadName = "") {
+		return self::showInfo( $threadName ? 'wikiforum-cat-by' : 'wikiforum-by', $timestamp, $user, false , $threadName );
 	}
 
 	/**
@@ -360,17 +353,26 @@ class WikiForumGui {
 	 * @param string $userText
 	 * @return string
 	 */
-	private static function showInfo( $message, $timestamp, $userLink, $userText ) {
-		global $wgLang;
+	private static function showInfo( $message, $timestamp, $user, $plainLink = false, $threadName = "") {
+		global $wgLang, $wgWikiForumThreadByNamePath;
 
-		return wfMessage(
-			$message,
-			$wgLang->timeanddate( $timestamp ),
-			$userLink,
-			$userText,
-			$wgLang->date( $timestamp ),
-			$wgLang->time( $timestamp )
-		)->text();
+		$userText = $user->getName();
+		$userLink = $plainLink ? $userText : WikiForumClass::showUserLink( $user );
 
-	}
+		if ( $threadName ) {
+			$threadName = '<a href="' . str_replace('$1', urlencode(str_replace(' ', '_', $threadName)), $wgWikiForumThreadByNamePath) . "\">$threadName</a>";
+		}
+ 
+ 		return wfMessage(
+ 			$message,
+			$wgLang->userTimeAndDate( $timestamp, $user ),
+ 			$userLink,
+ 			$userText,
+			$wgLang->userDate( $timestamp, $user ),
+			$wgLang->userTime( $timestamp, $user ),
+			$threadName
+ 		)->text();
+ 
+ 	}
 }
+

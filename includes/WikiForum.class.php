@@ -133,6 +133,93 @@ class WikiForumClass {
 	}
 
 	/**
+	 * Return an array of the most recent posts as indicated by the given filter.
+	 *
+	 * For each filter, a key of the same name with a ! in front being set to true
+	 * indicates that that filter be inverted.
+	 * Filters are:
+	 *  'categories' => Only posts within the given categories.
+	 *  'category_ids' => Same as above, but pass IDs instead of names.
+	 *                    !categories inverts this.
+	 *  'forums' => Only posts within the given forums.
+	 *  'forum_ids' => Same as above, but pass IDs instead of names.
+	 *                 !forums inverts this.
+	 *  'users' => Only posts by the given users.
+	 *  'limit' => How many posts that fit these filters to return.
+	 *
+	 * @param array $filters
+	 * @return array
+	 */
+	static function getRecentPosts( $filters ) {
+		$limit = 10;
+		if ( isset( $filters[ 'limit' ] ) ) $limit = $filters[ 'limit' ];
+
+		if ( isset( $filters[ 'category_ids' ] ) ) {
+			$category_ids = $filters[ 'category_ids' ];
+		} else {
+			$category_ids = array();
+		}
+
+		$dbr = wfGetDB( DB_SLAVE );
+		if ( isset( $filters[ 'categories' ] ) ) {
+			// Convert categories to category_ids.
+			$sqlCategories = $dbr->select(
+				'wikiforum_category',
+				'*',
+				array( 'wfc_category_name' => $filters[ 'categories' ] ),
+				__METHOD__,
+				array()
+			);
+
+			foreach ( $sqlCategories as $sql ) {
+				$cat = WFCategory::newFromSQL( $sql );
+
+				array_push($category_ids, $cat->getId());
+			}
+		}
+
+		// TODO: Forums, Users
+
+		$replies = $dbr->select(
+			array( 'wikiforum_replies', 'wikiforum_threads', 'wikiforum_forums' ),
+			'*',
+			array( 'wff_category' => $category_ids ),
+			__METHOD__,
+			array( 'ORDER BY' => 'wfr_posted_timestamp DESC', 'LIMIT' => $limit ),
+			array(
+				'wikiforum_threads' => array( 'INNER JOIN', array( 'wfr_thread=wft_thread' ) ),
+				'wikiforum_forums'  => array( 'INNER JOIN', array( 'wft_forum=wff_forum' ) ),
+			)
+		);
+
+		$threads = $dbr->select(
+			array( 'wikiforum_threads', 'wikiforum_forums' ),
+			'*',
+			array( 'wff_category' => $category_ids ),
+			__METHOD__,
+			array( 'ORDER BY' => 'wft_posted_timestamp DESC', 'LIMIT' => $limit ),
+			array(
+                'wikiforum_forums'  => array( 'INNER JOIN', array( 'wft_forum=wff_forum' ) ),
+            )
+		);
+
+		$posts = array();
+		foreach ( $replies as $sql ) {
+			array_push( $posts, WFReply::newFromSQL( $sql ) );
+		}
+
+		foreach ( $threads as $sql ) {
+			array_push( $posts, WFThread::newFromSQL( $sql ) );
+		}
+
+		usort( $posts, function ( $a, $b ) {
+        	return strcmp( $b->getPostedTimestamp(), $a->getPostedTimestamp() );
+		} );
+
+		return array_slice( $posts, 0, $limit );
+	}
+
+	/**
 	 * Return a user object from fields from the DB
 	 *
 	 * @param int $userID
@@ -153,7 +240,7 @@ class WikiForumClass {
 	 * @param User $user: user object
 	 * @return HTML
 	 */
-	public static function showUserLink( User $user ) {
+	public static function showUserLink( User $user, $showTitle = true ) {
 		$username = $user->getName();
 
 		if ( $user->isAnon() ) { // Do no further processing for anons, since anons cannot have groups.
@@ -165,19 +252,21 @@ class WikiForumClass {
 		$groups = $user->getEffectiveGroups();
 		$groupText = '';
 
-		if ( in_array( 'sysop', $groups ) ) {
-			$groupText .= wfMessage( 'word-separator' )->plain() .
-				wfMessage(
-					'parentheses',
-					User::makeGroupLinkHTML( 'sysop', User::getGroupMember( 'sysop', $username ) )
-				)->text();
+		if ( $showTitle ) {
+			if ( in_array( 'sysop', $groups ) ) {
+				$groupText .= wfMessage( 'word-separator' )->plain() .
+					wfMessage(
+						'parentheses',
+						User::makeGroupLinkHTML( 'sysop', User::getGroupMember( 'sysop', $username ) )
+					)->text();
 
-		} elseif ( in_array( 'forumadmin', $groups ) ) {
-			$groupText .= wfMessage( 'word-separator' )->plain() .
-				wfMessage(
-					'parentheses',
-					User::makeGroupLinkHTML( 'forumadmin', User::getGroupMember( 'forumadmin', $username ) )
-				)->text();
+			} elseif ( in_array( 'forumadmin', $groups ) ) {
+				$groupText .= wfMessage( 'word-separator' )->plain() .
+					wfMessage(
+						'parentheses',
+						User::makeGroupLinkHTML( 'forumadmin', User::getGroupMember( 'forumadmin', $username ) )
+					)->text();
+			}
 		}
 
 		Hooks::run( 'WikiForumSig', array( &$groupText, $user ) );
@@ -194,13 +283,19 @@ class WikiForumClass {
 	 * @return string: HTML, the avatar
 	 */
 	static function showAvatar( User $user ) {
-		$avatar = '';
+		$avatar = '<div class="wikiforum-avatar-container">';
 		if ( class_exists( 'wAvatar' ) ) {
 			$avatarObj = new wAvatar( $user->getId() , 'l' );
-			$avatar = '<div class="wikiforum-avatar-image">';
-			$avatar .= $avatarObj->getAvatarURL();
-			$avatar .= '</div>';
+			$avatar .= '<div class="wikiforum-avatar-image">'
+					.  $avatarObj->getAvatarURL()
+					.  '</div>';
 		}
+
+		$avatar .= '<div class="wikiforum-avatar-name">'
+			. WikiForumClass::showUserLink( $user, false )
+			. '</div>'
+			. '</div>';
+
 		return $avatar;
 	}
 
@@ -306,16 +401,11 @@ class WikiForumClass {
 		$output = wfMessage( "captcha-sendemail" )->parseAsBlock();
 
 		$captcha = ConfirmEditHooks::getInstance();
-		$captcha->setTrigger( 'wikiforum' );
-		$captcha->setAction( 'post' );
-
-		$formInformation = $captcha->getFormInformation();
-		$formMetainfo = $formInformation;
-		unset( $formMetainfo['html'] );
-		$captcha->addFormInformationToOutput( $out, $formMetainfo );
-
-		$output .= $formInformation['html'];
+		$captcha->trigger = 'wikiforum';
+		$captcha->action = 'post';
+		$output .= $captcha->getForm( $out );
 
 		return $output;
 	}
 }
+

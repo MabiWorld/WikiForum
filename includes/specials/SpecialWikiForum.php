@@ -35,8 +35,9 @@ class WikiForum extends SpecialPage {
 
 		$this->setHeaders();
 
-		// Add CSS
+		// Add CSS & JS
 		$out->addModuleStyles( 'ext.wikiForum' );
+		$out->addModuleScripts( 'ext.wikiForum.js' );
 		$out->addModules( 'mediawiki.page.gallery' ); // needed to show galleries correctly. Should be a better way of doing this so it's only loaded if there is a gallery, but I can't find it.
 
 		$output = '';
@@ -156,6 +157,10 @@ class WikiForum extends SpecialPage {
 							case 'savenewthread':
 								$output .= $forum->addThread( $title, $text );
 								break;
+  							case 'domovethread':
+  								// TODO: Will error if no threadID is specified
+  								$output .= WFThread::newFromID( $threadID )->move( $forumID, $title );
+  								break;
 
 							default:
 								$output .= $forum->show();
@@ -181,6 +186,9 @@ class WikiForum extends SpecialPage {
 							case 'editthread':
 								$output .= $thread->showEditForm();
 								break;
+  							case 'movethread':
+  								$output .= $thread->showMoveForm();
+  								break;
 							case 'savethread':
 								$output .= $thread->edit( $title, $text );
 								break;

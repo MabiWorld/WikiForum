@@ -120,6 +120,10 @@ class WFCategory extends ContextSource {
 	 * @return string
 	 */
 	function getURL() {
+		global $wgWikiForumCategoryPath;
+
+		if ( $wgWikiForumCategoryPath ) return str_replace("$1", $this->getId(), $wgWikiForumCategoryPath);
+
 		return htmlspecialchars( SpecialPage::getTitleFor( 'WikiForum' )->getFullURL( array( 'category' => $this->getId() ) ) );
 	}
 
@@ -432,10 +436,16 @@ class WFCategory extends ContextSource {
 	 * @return string
 	 */
 	function showHeaderLinks() {
-		$output = Linker::link(
-			SpecialPage::getTitleFor( 'WikiForum' ),
-			wfMessage( 'wikiforum-overview' )->text()
-		);
+		global $wgWikiForumOverviewPath;
+
+		if ( $wgWikiForumOverviewPath ) {
+			$output = "<a href=\"${wgWikiForumOverviewPath}\">" . wfMessage( 'wikiforum-overview' )->text() . "</a>";
+		} else {
+			$output = Linker::link(
+				SpecialPage::getTitleFor( 'WikiForum' ),
+				wfMessage( 'wikiforum-overview' )->text()
+			);
+		}
 
 		return $output . ' &gt; ' . $this->showLink();
 	}
