@@ -856,7 +856,7 @@ class WFThread extends ContextSource {
 			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_edit.png" title="' . wfMessage( 'wikiforum-edit-thread' )->text() . '" />';
 			if ( $isMod ) {
 				$editButtons .= '</a> <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'movethread', 'thread' => $this->getId() ) ) ) . '">';
-				$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/icons/note_go.png" title="' . wfMessage( 'wikiforum-move-thread' )->text() . '" />';
+				$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_go.png" title="' . wfMessage( 'wikiforum-move-thread' )->text() . '" />';
 			}
 			$editButtons .= '</a> <a href="javascript:confirmNavigation(\'' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'deletethread', 'thread' => $this->getId() ) ) ) . '\',\'' . htmlspecialchars( wfMessage( 'wikiforum-delete-thread-confirmation' ) ) . '\')">';
 			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_delete.png" title="' . wfMessage( 'wikiforum-delete-thread' )->text() . '" />';
