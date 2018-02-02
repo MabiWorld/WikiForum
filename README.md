@@ -14,10 +14,10 @@ A project page can be found [here](https://forums.mabi.world/thread/These_forums
 * A better thread summary showing info about the latest post in the "Latest thread" column of forum summaries.
 * Addition of a "new" thread icon, for recent threads.
 * Move threads/replies functionality added.
-** Similarly, lots of fixes for delete function was needed.
+  * Similarly, lots of fixes for delete function was needed.
 * Allowed users to edit and delete their own posts.
 * Conversion of post box to use WikiEditor.
 * Various formatting adjustments.
 * Fixes to page number display
 * Jump to latest page
-** Form is: ThreadName/latest
+  * Form is: ThreadName/latest
