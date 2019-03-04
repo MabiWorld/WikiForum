@@ -14,7 +14,7 @@ class WFThread extends ContextSource {
 	/**
 	 * Get the WFThread object for the thread with the given ID number
 	 *
-	 * @param int $id: ID to find
+	 * @param int $id ID to find
 	 * @return WFThread
 	 */
 	public static function newFromID( $id ) {
@@ -23,7 +23,7 @@ class WFThread extends ContextSource {
 		$data = $dbr->selectRow(
 			'wikiforum_threads',
 			'*',
-			array( 'wft_thread' => $id ),
+			[ 'wft_thread' => $id ],
 			__METHOD__
 		);
 
@@ -37,7 +37,7 @@ class WFThread extends ContextSource {
 	/**
 	 * Get the WFThread object from a row from the DB
 	 *
-	 * @param stdClass $sql: the row. Not a ResultWrapper! (Either use $dbr->fetchObject(), or loop through the resultWrapper!)
+	 * @param stdClass $sql the row. Not a ResultWrapper! (Either use $dbr->fetchObject(), or loop through the resultWrapper!)
 	 * @return WFThread
 	 */
 	public static function newFromSQL( $sql ) {
@@ -48,7 +48,7 @@ class WFThread extends ContextSource {
 	 * Find a thread when you know the title.
 	 *
 	 * @param $titleText String: thread title
-	 * @return boolean|WFThread: Thread, or false on failure
+	 * @return bool|WFThread Thread, or false on failure
 	 */
 	public static function newFromName( $titleText ) {
 		// Titles are stored with spaces in the DB but the query will otherwise
@@ -59,7 +59,7 @@ class WFThread extends ContextSource {
 		$data = $dbr->selectRow(
 			'wikiforum_threads',
 			'*',
-			array( 'wft_thread_name' => $titleText ),
+			[ 'wft_thread_name' => $titleText ],
 			__METHOD__
 		);
 
@@ -73,7 +73,7 @@ class WFThread extends ContextSource {
 	/**
 	 * Whether or not the thread is sticky
 	 *
-	 * @return boolean
+	 * @return bool
 	 */
 	function isSticky() {
 		return $this->data->wft_sticky == true;
@@ -82,7 +82,7 @@ class WFThread extends ContextSource {
 	/**
 	 * Whether or not the thread is closed
 	 *
-	 * @return boolean
+	 * @return bool
 	 */
 	function isClosed() {
 		return $this->data->wft_closed == true;
@@ -97,7 +97,7 @@ class WFThread extends ContextSource {
 		if ( $this->getReplyCount() > 0 ) {
 			return WikiForumGui::showByInfo(
 				$this->data->wft_last_post_timestamp,
-				WikiForumClass::getUserFromDB( $this->data->wft_last_post_user, $this->data->wft_last_post_user_ip )
+				WikiForum::getUserFromDB( $this->data->wft_last_post_user, $this->data->wft_last_post_user_ip )
 			);
 		} else {
 			return '';
@@ -140,7 +140,7 @@ class WFThread extends ContextSource {
 	/**
 	 * Get the URL to this thread
 	 *
-	 * @param int $reply: auto scroll to reply, optional
+	 * @param int $reply auto scroll to reply, optional
 	 * @return string
 	 */
 	function getURL( $reply = false, $internal = false, $special = false ) {
@@ -168,8 +168,8 @@ class WFThread extends ContextSource {
 	/**
 	 * Get the HTML for a link to this thread
 	 *
-	 * @param int|boolean $reply: Optional: Reply to scroll to (through url #fragment)
-	 * @return string: HTML the link
+	 * @param int|bool $reply Optional: Reply to scroll to (through url #fragment)
+	 * @return string HTML the link
 	 */
 	function showLink( $reply = false ) {
 		return '<a href="' . $this->getURL() . '">' . $this->getName() . '</a>';
@@ -208,7 +208,7 @@ class WFThread extends ContextSource {
 	 * @return User
 	 */
 	function getEditedBy() {
-		return WikiForumClass::getUserFromDB( $this->data->wft_edit_user, $this->data->wft_edit_user_ip );
+		return WikiForum::getUserFromDB( $this->data->wft_edit_user, $this->data->wft_edit_user_ip );
 	}
 
 	/**
@@ -217,7 +217,7 @@ class WFThread extends ContextSource {
 	 * @return User
 	 */
 	function getPostedBy() {
-		return WikiForumClass::getUserFromDB( $this->data->wft_user, $this->data->wft_user_ip );
+		return WikiForum::getUserFromDB( $this->data->wft_user, $this->data->wft_user_ip );
 	}
 
 	/**
@@ -257,7 +257,7 @@ class WFThread extends ContextSource {
 	/**
 	 * Get this thread's ID number
 	 *
-	 * @return int: id
+	 * @return int id
 	 */
 	function getId() {
 		return $this->data->wft_thread;
@@ -292,7 +292,7 @@ class WFThread extends ContextSource {
 	/**
 	 * Gets an array of this thread's replies
 	 *
-	 * @return multitype:WFReply: array of replies
+	 * @return multitype:WFReply array of replies
 	 */
 	function getReplies() {
 		if ( !$this->replies ) {
@@ -301,14 +301,14 @@ class WFThread extends ContextSource {
 			$sqlReplies = $dbr->select(
 				'wikiforum_replies',
 				'*',
-				array( 'wfr_thread' => $this->getId() ),
+				[ 'wfr_thread' => $this->getId() ],
 				__METHOD__,
-				array( 'ORDER BY' => 'wfr_posted_timestamp ASC' )
+				[ 'ORDER BY' => 'wfr_posted_timestamp ASC' ]
 			);
 
-			$replies = array();
+			$replies = [];
 
-			foreach( $sqlReplies as $sql ) {
+			foreach ( $sqlReplies as $sql ) {
 				$reply = WFReply::newFromSQL( $sql );
 				$reply->thread = $this; // saves thread making DB query to find
 				$replies[] = $reply;
@@ -322,8 +322,8 @@ class WFThread extends ContextSource {
 	/**
 	 * Add a reply to this thread
 	 *
-	 * @param string $text: user-supplied reply text
-	 * @return boolean: true if success, or false on failure
+	 * @param string $text user-supplied reply text
+	 * @return bool true if success, or false on failure
 	 */
 	function addReply( $text ) {
 		return WFReply::add( $this, $text );
@@ -333,7 +333,7 @@ class WFThread extends ContextSource {
 	 * Deletes the thread
 	 *
 	 * @param $threadId Integer: ID number of the thread to delete
-	 * @return string: HTML
+	 * @return string HTML
 	 */
 	function delete() {
 		$user = $this->getUser();
@@ -342,14 +342,14 @@ class WFThread extends ContextSource {
 			$user->isAnon() ||
 			( $user->getId() != $this->getPostedById() && !$user->isAllowed( 'wikiforum-moderator' ) )
 		) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-delete', 'wikiforum-error-general' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-delete', 'wikiforum-error-general' );
 			return $error . $this->show();
 		}
 
 		$dbw = wfGetDB( DB_MASTER );
 		$dbw->delete(
 			'wikiforum_threads',
-			array( 'wft_thread' => $this->getId() ),
+			[ 'wft_thread' => $this->getId() ],
 			__METHOD__
 		);
 		// Update threads/replies counters
@@ -371,14 +371,14 @@ class WFThread extends ContextSource {
 		$dbw = wfGetDB( DB_MASTER );
 		$row = $dbw->selectRow(
 			'wikiforum_replies',
-			array(
+			[
 				'wfr_user',
 				'wfr_user_ip',
 				'wfr_posted_timestamp'
-			),
-			array( 'wfr_thread' => $this->getId() ),
+			],
+			[ 'wfr_thread' => $this->getId() ],
 			__METHOD__,
-			array( 'LIMIT' => 1, 'ORDER BY' => 'wfr_posted_timestamp desc' )
+			[ 'LIMIT' => 1, 'ORDER BY' => 'wfr_posted_timestamp desc' ]
 		);
 
   		if ( !$row || count(get_object_vars($row)) == 0 ) {
@@ -390,13 +390,13 @@ class WFThread extends ContextSource {
   
   		$result = $dbw->update(
   			'wikiforum_threads',
- 			array(
+ 			[
   				"wft_reply_count = wft_reply_count - $decReplies",
   				'wft_last_post_user' => $row->wfr_user,
   				'wft_last_post_user_ip' => $row->wfr_user_ip,
   				'wft_last_post_timestamp' => $row->wfr_posted_timestamp
-			),
-			array( 'wft_thread' => $this->getId() ),
+			],
+			[ 'wft_thread' => $this->getId() ],
 			__METHOD__
 		);
 
@@ -405,25 +405,24 @@ class WFThread extends ContextSource {
 		return $this->getForum()->updateLast($decReplies, 0);
 	}
 
-
 	/**
 	 * Reopens the thread
 	 *
-	 * @return string: HTML
+	 * @return string HTML
 	 */
 	function reopen() {
 		if ( !$this->getUser()->isAllowed( 'wikiforum-moderator' ) ) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-thread-reopen', 'wikiforum-error-general' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-thread-reopen', 'wikiforum-error-general' );
 			return $error . $this->show();
 		}
 		$dbw = wfGetDB( DB_MASTER );
 		$result = $dbw->update(
 			'wikiforum_threads',
-			array(
+			[
 				'wft_closed' => 0,
 				'wft_closed_user' => 0
-			),
-			array( 'wft_thread' => $this->getId() ),
+			],
+			[ 'wft_thread' => $this->getId() ],
 			__METHOD__
 		);
 
@@ -436,25 +435,25 @@ class WFThread extends ContextSource {
 	/**
 	 * Closes the thread
 	 *
-	 * @return string: HTML
+	 * @return string HTML
 	 */
 	function close() {
 		$user = $this->getUser();
 
 		if ( !$user->isAllowed( 'wikiforum-moderator' ) ) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-thread-close', 'wikiforum-error-general' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-thread-close', 'wikiforum-error-general' );
 			return $error . $this->show();
 		}
 
 		$dbw = wfGetDB( DB_MASTER );
 		$result = $dbw->update(
 			'wikiforum_threads',
-			array(
+			[
 				'wft_closed' => wfTimestampNow(),
 				'wft_closed_user' => $user->getId(),
 				'wft_closed_user_ip' => $this->getRequest()->getIP()
-			),
-			array( 'wft_thread' => $this->getId() ),
+			],
+			[ 'wft_thread' => $this->getId() ],
 			__METHOD__
 		);
 
@@ -468,7 +467,7 @@ class WFThread extends ContextSource {
 	/**
 	 * Make the thread sticky
 	 *
-	 * @return boolean: success?
+	 * @return bool success?
 	 */
 	function makeSticky() {
 		return $this->sticky( 1 );
@@ -477,7 +476,7 @@ class WFThread extends ContextSource {
 	/**
 	 * Stop the thread being sticky
 	 *
-	 * @return boolean: success?
+	 * @return bool success?
 	 */
 	function removeSticky() {
 		return $this->sticky( 0 );
@@ -491,15 +490,15 @@ class WFThread extends ContextSource {
 	 */
 	private function sticky( $value ) {
 		if ( !$this->getUser()->isAllowed( 'wikiforum-admin' ) ) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-sticky', 'wikiforum-error-general' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-sticky', 'wikiforum-error-general' );
 			return $error . $this->show();
 		}
 
 		$dbw = wfGetDB( DB_MASTER );
 		$result = $dbw->update(
 			'wikiforum_threads',
-			array( 'wft_sticky' => $value ),
-			array( 'wft_thread' => $this->getId() ),
+			[ 'wft_sticky' => $value ],
+			[ 'wft_thread' => $this->getId() ],
 			__METHOD__
 		);
 
@@ -511,9 +510,9 @@ class WFThread extends ContextSource {
 	/**
 	 * Edit the title and/or text of the thread
 	 *
-	 * @param string $title: user supplied new title
-	 * @param string $text: user supplied new text
-	 * @return string: HTML
+	 * @param string $title user supplied new title
+	 * @param string $text user supplied new text
+	 * @return string HTML
 	 */
 	function edit( $title, $text = null ) {
 		$user = $this->getUser();
@@ -522,7 +521,7 @@ class WFThread extends ContextSource {
 			$text && $title && strlen( $text ) == 1 ||
 			strlen( $title ) == 1
 		) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-edit', 'wikiforum-error-no-text-or-title' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-edit', 'wikiforum-error-no-text-or-title' );
 			return $error . $this->showEditor();
 		}
 
@@ -537,32 +536,32 @@ class WFThread extends ContextSource {
 				!$user->isAllowed( 'wikiforum-moderator' )
 			)
 		) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-general-title', 'wikiforum-error-no-rights' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-general-title', 'wikiforum-error-no-rights' );
 			return $error . $this->show();
 		}
 
 		$dbw = wfGetDB( DB_MASTER );
-		$dbUpdate = array(
+		$dbUpdate = [
 			'wft_thread_name' => $title,
 			'wft_edit_timestamp' => wfTimestampNow(),
 			'wft_edit_user' => $user->getId(),
 			'wft_edit_user_ip' => $this->getRequest()->getIP(),
-		);
+		];
 		if ( $text ) $dbUpdate['wft_text'] = $text;
 
  		$result = $dbw->update(
  			'wikiforum_threads',
 			$dbUpdate,
-			array( 'wft_thread' => $this->getId() ),
+			[ 'wft_thread' => $this->getId() ],
 			__METHOD__
 		);
 
 		$result = $dbw->update(
 			'wikiforum_forums',
-			array(
+			[
 				'wff_last_thread_name' => $title,
-			),
-			array( 'wff_last_thread_name' => $this->data->wft_thread_name ),
+			],
+			[ 'wff_last_thread_name' => $this->data->wft_thread_name ],
 			__METHOD__
 		);
 
@@ -589,7 +588,7 @@ class WFThread extends ContextSource {
 			$user->isAnon() ||
 			!$user->isAllowed( 'wikiforum-moderator' )
 		) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-general-title', 'wikiforum-error-no-rights' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-general-title', 'wikiforum-error-no-rights' );
 			return $error . $this->show();
 		}
 
@@ -599,7 +598,7 @@ class WFThread extends ContextSource {
 			$newForum = WFForum::newFromId($newForumID);
 			if ( $newForum === False ) {
 				$threadId = $this->getId();
-				$error = WikiForumClass::showErrorMessage( 'wikiforum-forum-not-found', 'wikiforum-forum-not-found-text' ) . "$newForumID ($threadId)";
+				$error = WikiForum::showErrorMessage( 'wikiforum-forum-not-found', 'wikiforum-forum-not-found-text' ) . "$newForumID ($threadId)";
 				return $error . $this->show();
 			}
 			$oldForum = $this->getForum();
@@ -608,10 +607,10 @@ class WFThread extends ContextSource {
 			$dbw = wfGetDB( DB_MASTER );
 			$result = $dbw->update(
 				'wikiforum_threads',
-				array(
+				[
 					'wft_forum' => $newForumID,
-				),
-				array( 'wft_thread' => $this->getId() ),
+				],
+				[ 'wft_thread' => $this->getId() ],
 				__METHOD__
 			);
 
@@ -634,7 +633,7 @@ class WFThread extends ContextSource {
 	 * locked icon for locked threads and an ordinary thread icon for
 	 * everything else.
 	 *
-	 * @return HTML: img tag
+	 * @return HTML img tag
 	 */
 	function getIcon() {
 		global $wgExtensionAssetsPath;
@@ -659,7 +658,7 @@ class WFThread extends ContextSource {
 	/**
 	 * Show this thread, with headers, replies, frames, et al.
 	 *
-	 * @return string: HTML of thread
+	 * @return string HTML of thread
 	 */
 	function show() {
 		global $wgExtensionAssetsPath;
@@ -675,11 +674,11 @@ class WFThread extends ContextSource {
 		if ( $this->getUser()->isAllowed( 'wikiforum-admin' ) ) {
 			if ( $this->isSticky() ) {
 				$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/tag_blue_delete.png" title="' . wfMessage( 'wikiforum-remove-sticky' )->text() . '" /> ';
-				$menuLink = $icon . '<a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'removesticky', 'thread' => $this->getId() ) ) ) . '">' .
+				$menuLink = $icon . '<a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'removesticky', 'thread' => $this->getId() ] ) ) . '">' .
 					wfMessage( 'wikiforum-remove-sticky' )->text() . '</a> ';
 			} else {
 				$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/tag_blue_add.png" title="' . wfMessage( 'wikiforum-make-sticky' )->text() . '" /> ';
-				$menuLink = $icon . '<a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'makesticky', 'thread' => $this->getId() ) ) ) . '">' .
+				$menuLink = $icon . '<a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'makesticky', 'thread' => $this->getId() ] ) ) . '">' .
 					wfMessage( 'wikiforum-make-sticky' )->text() . '</a> ';
 			}
 		}
@@ -693,7 +692,7 @@ class WFThread extends ContextSource {
 		$output .= WikiForumGui::showSearchbox();
 
 		if ( $this->isClosed() ) {
-			$output .= WikiForumClass::showErrorMessage( 'wikiforum-thread-closed', 'wikiforum-error-thread-closed', 'lock.png' );
+			$output .= WikiForum::showErrorMessage( 'wikiforum-thread-closed', 'wikiforum-error-thread-closed', 'lock.png' );
 		}
 
 		// limiting
@@ -727,14 +726,14 @@ class WFThread extends ContextSource {
 			$countReplies = $dbr->selectRow(
 				'wikiforum_replies',
 				'COUNT(*) AS count',
-				array( 'wfr_thread' => $this->getId() ),
+				[ 'wfr_thread' => $this->getId() ],
 				__METHOD__
 			);
 			$footerRow = WikiForumGui::showFooterRow(
 				$limit_page,
 				$countReplies->count,
 				$maxPerPage,
-				array( 'thread' => $this->getId() )
+				[ 'thread' => $this->getId() ]
 			);
 			$output .= $footerRow;
 		}
@@ -761,8 +760,8 @@ class WFThread extends ContextSource {
 			$dbw = wfGetDB( DB_MASTER );
 			$dbw->update(
 				'wikiforum_threads',
-				array( 'wft_view_count = wft_view_count + 1' ),
-				array( 'wft_thread' => $this->getId() ),
+				[ 'wft_view_count = wft_view_count + 1' ],
+				[ 'wft_thread' => $this->getId() ],
 				__METHOD__
 			);
 		}
@@ -842,7 +841,7 @@ class WFThread extends ContextSource {
 
 		$specialPage = SpecialPage::getTitleFor( 'WikiForum' );
 
-		$editButtons .= '<a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'thread' => $this->getId(), 'quotethread' => $this->getId() ) ) ) . '#writereply">';
+		$editButtons .= '<a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'thread' => $this->getId(), 'quotethread' => $this->getId() ] ) ) . '#writereply">';
 		$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/comments_add.png" title="' . wfMessage( 'wikiforum-quote' )->text() . '" />';
 		$editButtons .= '</a>';
 
@@ -852,24 +851,24 @@ class WFThread extends ContextSource {
 			$user->getId() == $this->getPostedById() ||
 			$isMod
 		) {
-			$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'editthread', 'thread' => $this->getId() ) ) ) . '">';
+			$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'editthread', 'thread' => $this->getId() ] ) ) . '">';
 			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_edit.png" title="' . wfMessage( 'wikiforum-edit-thread' )->text() . '" />';
 			if ( $isMod ) {
-				$editButtons .= '</a> <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'movethread', 'thread' => $this->getId() ) ) ) . '">';
+				$editButtons .= '</a> <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'movethread', 'thread' => $this->getId() ] ) ) . '">';
 				$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_go.png" title="' . wfMessage( 'wikiforum-move-thread' )->text() . '" />';
 			}
-			$editButtons .= '</a> <a href="javascript:confirmNavigation(\'' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'deletethread', 'thread' => $this->getId() ) ) ) . '\',\'' . htmlspecialchars( wfMessage( 'wikiforum-delete-thread-confirmation' ) ) . '\')">';
+			$editButtons .= '</a> <a href="javascript:confirmNavigation(\'' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'deletethread', 'thread' => $this->getId() ] ) ) . '\',\'' . htmlspecialchars( wfMessage( 'wikiforum-delete-thread-confirmation' ) ) . '\')">';
 			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_delete.png" title="' . wfMessage( 'wikiforum-delete-thread' )->text() . '" />';
 			$editButtons .= '</a> ';
 
 			// Only moderators can lock and reopen threads
 			if ( $user->isAllowed( 'wikiforum-moderator' ) ) {
 				if ( !$this->isClosed() ) {
-					$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'closethread', 'thread' => $this->getId() ) ) ) . '">';
+					$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'closethread', 'thread' => $this->getId() ] ) ) . '">';
 					$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/lock_add.png" title="' . wfMessage( 'wikiforum-close-thread' )->text() . '" />';
 					$editButtons .= '</a>';
 				} else {
-					$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'reopenthread', 'thread' => $this->getId() ) ) ) . '">';
+					$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'reopenthread', 'thread' => $this->getId() ] ) ) . '">';
 					$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/lock_open.png" title="' . wfMessage( 'wikiforum-reopen-thread' )->text() . '" />';
 					$editButtons .= '</a>';
 				}
@@ -883,59 +882,59 @@ class WFThread extends ContextSource {
 	 * Check whether a thread with the given title exists
 	 *
 	 * @param string $title
-	 * @return boolean
+	 * @return bool
 	 */
 	static function titleExists( $title ) {
-		return WFThread::newFromName( $title ) == true;
+		return self::newFromName( $title ) == true;
 	}
 
 	/**
 	 * Add a new thread
 	 *
-	 * @param WFForum $forum: forum to add thread to
-	 * @param string $title: thread title
-	 * @param string $text: thread text
-	 * @return boolean|WFThread: WFThread of new thread if success, otherwise false
+	 * @param WFForum $forum forum to add thread to
+	 * @param string $title thread title
+	 * @param string $text thread text
+	 * @return bool|WFThread WFThread of new thread if success, otherwise false
 	 */
 	static function add( WFForum $forum, $title, $text ) {
 		global $wgRequest, $wgUser, $wgWikiForumAllowAnonymous, $wgWikiForumLogInRC, $wgLang;
 
 		if ( !$wgWikiForumAllowAnonymous && $wgUser->isAnon() ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-rights' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-rights' );
 		}
 
 		if ( strlen( $text ) == 0 || strlen( $title ) == 0 ) { // show form again, return it
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-text-or-title' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-text-or-title' );
 			return $error . $forum->showNewThreadForm( $title, $text );
 		}
 
-		if ( WFThread::titleExists( $title ) ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-title-already-exists' );
+		if ( self::titleExists( $title ) ) {
+			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-title-already-exists' );
 		}
 
 		$title = trim( $title );
 
 		if ( preg_replace( '/[' . Title::legalChars() . ']/', '', $title ) ) { // removes all legal chars, then sees if string has length
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-bad-title' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-bad-title' );
 		}
 
 		if ( $forum->isAnnouncement() && !$wgUser->isAllowed( 'wikiforum-moderator' ) ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-rights' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-rights' );
 		}
 
-		if ( WikiForumClass::useCaptcha() ) {
+		if ( WikiForum::useCaptcha() ) {
 			$captcha = ConfirmEditHooks::getInstance();
-			$captcha->trigger = 'wikiforum';
-			if ( !ConfirmEditHooks::getInstance()->passCaptcha() ) {
-				$output = WikiForumClass::showErrorMessage('wikiforum-error-add', 'wikiforum-error-captcha');
-				$output .= WFThread::showGeneralEditor(
+			$captcha->setTrigger( 'wikiforum' );
+			if ( !$captcha->passCaptchaFromRequest( $wgRequest, $wgUser ) ) {
+				$output = WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-captcha' );
+				$output .= self::showGeneralEditor(
 					$title,
 					'',
 					$text,
-					array(
+					[
 						'wfaction' => 'savenewthread',
 						'forum' => $forum->getId()
-					)
+					]
 				);
 				return $output;
 			}
@@ -946,7 +945,7 @@ class WFThread extends ContextSource {
 
 		$result = $dbw->insert(
 			'wikiforum_threads',
-			array(
+			[
 				'wft_thread_name' => $title,
 				'wft_text' => $text,
 				'wft_posted_timestamp' => $timestamp,
@@ -954,34 +953,34 @@ class WFThread extends ContextSource {
 				'wft_user_ip' => $wgRequest->getIP(),
 				'wft_forum' => $forum->getId(),
 				'wft_last_post_timestamp' => $timestamp
-			),
+			],
 			__METHOD__
 		);
 
-		$thread = WFThread::newFromName( $title );
+		$thread = self::newFromName( $title );
 		$thread->forum = $forum; // saves an extra DB query
 
 		$dbw->update( // update thread counters
 			'wikiforum_forums',
-			array(
+			[
 				'wff_thread_count = wff_thread_count + 1',
 				'wff_last_thread_name' => $title,
 				'wff_last_post_user' => $wgUser->getId(),
 				'wff_last_post_user_ip' => $wgRequest->getIP(),
 				'wff_last_post_timestamp' => $timestamp
-			),
-			array( 'wff_forum' => $forum->getId() ),
+			],
+			[ 'wff_forum' => $forum->getId() ],
 			__METHOD__
 		);
 
 		$logEntry = new ManualLogEntry( 'forum', 'add-thread' );
 		$logEntry->setPerformer( $wgUser );
 		$logEntry->setTarget( SpeciaLPage::getTitleFor( 'wikiforum' ) );
-		$shortText = $wgLang->truncate( $text, 50 );
+		$shortText = $wgLang->truncateForDatabase( $text, 50 );
 		$logEntry->setComment( $shortText );
-		$logEntry->setParameters( array(
+		$logEntry->setParameters( [
 			'4::thread-name' => $title
-		) );
+		] );
 		$logid = $logEntry->insert();
 		if ( $wgWikiForumLogInRC ) {
 			$logEntry->publish( $logid );
@@ -990,7 +989,7 @@ class WFThread extends ContextSource {
 		if ( $result ) {
 			return $thread->show();
 		} else {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-general' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-general' );
 		}
 	}
 
@@ -1026,8 +1025,8 @@ class WFThread extends ContextSource {
 						<th class="mw-wikiforum-thread-top" style="text-align: right;">[#' . $this->getId() . ']</th>
 					</tr>
 					<tr>
-						<td class="mw-wikiforum-thread-main" colspan="2">' . WikiForumClass::showAvatar( $this->getPostedBy() ) .
-							WikiForumClass::parseIt( $this->getText() ) . WikiForumGui::showBottomLine( $posted, $this->showButtons() ) . '
+						<td class="mw-wikiforum-thread-main" colspan="2">' . WikiForum::showAvatar( $this->getPostedBy() ) .
+							WikiForum::parseIt( $this->getText() ) . WikiForumGui::showBottomLine( $posted, $this->showButtons() ) . '
 						</td>
 					</tr>';
 	}
@@ -1036,9 +1035,9 @@ class WFThread extends ContextSource {
 		$posted = $this->showPostedInfo();
 		$posted .= '<br />' . wfMessage( 'wikiforum-search-thread', $this->showLink() )->text();
 
-		return 	'<tr>
-					<td class="mw-wikiforum-thread-main" colspan="2">' . WikiForumClass::showAvatar( $this->getPostedBy() ) .
-						WikiForumClass::parseIt( $this->getText() ) . WikiForumGui::showBottomLine( $posted ) . '
+		return '<tr>
+					<td class="mw-wikiforum-thread-main" colspan="2">' . WikiForum::showAvatar( $this->getPostedBy() ) .
+						WikiForum::parseIt( $this->getText() ) . WikiForumGui::showBottomLine( $posted ) . '
 					</td>
 				</tr>';
 	}
@@ -1058,14 +1057,14 @@ class WFThread extends ContextSource {
 	 * @return string
 	 */
 	function showEditForm() {
-		return WFThread::showGeneralEditor(
+		return self::showGeneralEditor(
 			$this->getName(),
 			'',
 			$this->getText(),
-			array(
+			[
 				'wfaction' => 'savethread',
 				'thread' => $this->getId()
-			)
+			]
 		);
 	}
 
@@ -1081,9 +1080,9 @@ class WFThread extends ContextSource {
 		$sqlForums = $dbr->select(
 			'wikiforum_forums',
 			'*',
-			array( ),
+			[],
 			__METHOD__,
-			array( 'ORDER BY' => 'wff_category ASC, wff_sortkey ASC, wff_forum ASC' )
+			[ 'ORDER BY' => 'wff_category ASC, wff_sortkey ASC, wff_forum ASC' ]
 		);
 
 		$row = '<tr><td><select name="forum">';
@@ -1098,10 +1097,10 @@ class WFThread extends ContextSource {
 
 		$row .= '</td></tr>';
 
-		$url = htmlspecialchars( SpecialPage::getTitleFor( 'WikiForum' )->getFullURL( array(
+		$url = htmlspecialchars( SpecialPage::getTitleFor( 'WikiForum' )->getFullURL( [
 			'wfaction' => 'domovethread',
 			'thread' => $this->getId(),
-		) ) );
+		] ) );
 
 		$title = $this->getName();
 		
@@ -1111,10 +1110,10 @@ class WFThread extends ContextSource {
 	/**
 	 * Show the editor for adding a thread/editing one
 	 *
-	 * @param string $titleValue: value to preload the title input with
-	 * @param string $titlePlaceholder: the placeholder element of the title input
-	 * @param string $textValue: value to preload the text field with
-	 * @param array $params: array of URL params to pass to the form
+	 * @param string $titleValue value to preload the title input with
+	 * @param string $titlePlaceholder the placeholder element of the title input
+	 * @param string $textValue value to preload the text field with
+	 * @param array $params array of URL params to pass to the form
 	 * @return string
 	 */
 	static function showGeneralEditor( $titleValue, $titlePlaceholder, $textValue, $params ) {
@@ -1130,7 +1129,7 @@ class WFThread extends ContextSource {
 	 *
 	 * @param $quoteReply int: the ID of the reply to quote in the editor. 0 for not quoting a reply
 	 * @param $quoteThread boolean: true-quote this thread in the editor. false-don't
-	 * @return string: HTML the editor
+	 * @return string HTML the editor
 	 */
 	function showNewReplyForm( $quoteReply, $quoteThread ) {
 		$textValue = '';
@@ -1149,10 +1148,10 @@ class WFThread extends ContextSource {
 		}
 
 		return WFReply::showGeneralEditor(
-			array(
+			[
 				'wfaction' => 'savenewreply',
 				'thread' => $this->getId()
-			),
+			],
 			$textValue
 		);
 	}

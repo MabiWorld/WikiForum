@@ -5,14 +5,14 @@
  * @file
  * @ingroup Extensions
  */
-class WikiForumClass {
+class WikiForum {
 
 	/**
 	 * Show an error message for the given title, message, and optional icon
 	 *
-	 * @param string $errorTitleMsg: message key
-	 * @param string $errorMessageMsg: message key
-	 * @param string $errorIcon: icon finename (optional)
+	 * @param string $errorTitleMsg message key
+	 * @param string $errorMessageMsg message key
+	 * @param string $errorIcon icon finename (optional)
 	 */
 	static function showErrorMessage( $errorTitleMsg, $errorMessageMsg, $errorIcon = 'exclamation.png' ) {
 		global $wgExtensionAssetsPath;
@@ -42,9 +42,9 @@ class WikiForumClass {
 		$sqlCategories = $dbr->select(
 			'wikiforum_category',
 			'*',
-			array(),
+			[],
 			__METHOD__,
-			array( 'ORDER BY' => 'wfc_sortkey ASC, wfc_category ASC' )
+			[ 'ORDER BY' => 'wfc_sortkey ASC, wfc_category ASC' ]
 		);
 
 		if ( $sqlCategories->numRows() ) {
@@ -62,7 +62,7 @@ class WikiForumClass {
 		// Forum admins are allowed to add new categories
 		if ( $wgUser->isAllowed( 'wikiforum-admin' ) ) {
 			$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/database_add.png" title="' . wfMessage( 'wikiforum-add-category' )->text() . '" /> ';
-			$menuLink = $icon . '<a href="' . htmlspecialchars( SpecialPage::getTitleFor( 'WikiForum' )->getFullURL( array( 'wfaction' => 'addcategory' ) ) ) . '">' .
+			$menuLink = $icon . '<a href="' . htmlspecialchars( SpecialPage::getTitleFor( 'WikiForum' )->getFullURL( [ 'wfaction' => 'addcategory' ] ) ) . '">' .
 				wfMessage( 'wikiforum-add-category' )->text() . '</a>';
 			$output .= WikiForumGui::showHeaderRow( '', $menuLink );
 		}
@@ -92,7 +92,6 @@ class WikiForumClass {
 			// buildLike() will escape the query properly, add the word LIKE and the "double quotes"
 			$likeString = $dbr->buildLike( $dbr->anyString(), $what, $dbr->anyString() );
 
-
 			$limit = intval( wfMessage( 'wikiforum-max-threads-per-page' )->inContentLanguage()->plain() );
 
 			$threadData = $dbr->select(
@@ -100,7 +99,7 @@ class WikiForumClass {
 				'*',
 				"(wft_thread_name $likeString OR wft_text $likeString)",
 				__METHOD__,
-				array( 'ORDER BY' => 'wft_posted_timestamp DESC', 'LIMIT' => $limit  )
+				[ 'ORDER BY' => 'wft_posted_timestamp DESC', 'LIMIT' => $limit ]
 			);
 
 			foreach ( $threadData as $sql ) {
@@ -115,7 +114,7 @@ class WikiForumClass {
 				'*',
 				"wfr_reply_text $likeString",
 				__METHOD__,
-				array( 'ORDER BY' => 'wfr_posted_timestamp DESC', 'LIMIT' => $limit )
+				[ 'ORDER BY' => 'wfr_posted_timestamp DESC', 'LIMIT' => $limit ]
 			);
 
 			foreach ( $replyData as $sql ) {
@@ -127,7 +126,7 @@ class WikiForumClass {
 
 			$output .= '</table>' . WikiForumGui::showFrameFooter();
 		} else {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-search', 'wikiforum-error-search-missing-query' );
+			return self::showErrorMessage( 'wikiforum-error-search', 'wikiforum-error-search-missing-query' );
 		}
 		return $output;
 	}
@@ -157,7 +156,7 @@ class WikiForumClass {
 		if ( isset( $filters[ 'category_ids' ] ) ) {
 			$category_ids = $filters[ 'category_ids' ];
 		} else {
-			$category_ids = array();
+			$category_ids = [];
 		}
 
 		$dbr = wfGetDB( DB_SLAVE );
@@ -166,9 +165,9 @@ class WikiForumClass {
 			$sqlCategories = $dbr->select(
 				'wikiforum_category',
 				'*',
-				array( 'wfc_category_name' => $filters[ 'categories' ] ),
+				[ 'wfc_category_name' => $filters[ 'categories' ] ],
 				__METHOD__,
-				array()
+				[]
 			);
 
 			foreach ( $sqlCategories as $sql ) {
@@ -181,29 +180,29 @@ class WikiForumClass {
 		// TODO: Forums, Users
 
 		$replies = $dbr->select(
-			array( 'wikiforum_replies', 'wikiforum_threads', 'wikiforum_forums' ),
+			[ 'wikiforum_replies', 'wikiforum_threads', 'wikiforum_forums' ],
 			'*',
-			array( 'wff_category' => $category_ids ),
+			[ 'wff_category' => $category_ids ],
 			__METHOD__,
-			array( 'ORDER BY' => 'wfr_posted_timestamp DESC', 'LIMIT' => $limit ),
-			array(
+			[ 'ORDER BY' => 'wfr_posted_timestamp DESC', 'LIMIT' => $limit ],
+			[
 				'wikiforum_threads' => array( 'INNER JOIN', array( 'wfr_thread=wft_thread' ) ),
 				'wikiforum_forums'  => array( 'INNER JOIN', array( 'wft_forum=wff_forum' ) ),
-			)
+			]
 		);
 
 		$threads = $dbr->select(
-			array( 'wikiforum_threads', 'wikiforum_forums' ),
+			[ 'wikiforum_threads', 'wikiforum_forums' ],
 			'*',
-			array( 'wff_category' => $category_ids ),
+			[ 'wff_category' => $category_ids ],
 			__METHOD__,
-			array( 'ORDER BY' => 'wft_posted_timestamp DESC', 'LIMIT' => $limit ),
-			array(
-                'wikiforum_forums'  => array( 'INNER JOIN', array( 'wft_forum=wff_forum' ) ),
-            )
+			[ 'ORDER BY' => 'wft_posted_timestamp DESC', 'LIMIT' => $limit ],
+			[
+				'wikiforum_forums'  => [ 'INNER JOIN', [ 'wft_forum=wff_forum' ] ],
+			]
 		);
 
-		$posts = array();
+		$posts = [];
 		foreach ( $replies as $sql ) {
 			array_push( $posts, WFReply::newFromSQL( $sql ) );
 		}
@@ -224,7 +223,7 @@ class WikiForumClass {
 	 *
 	 * @param int $userID
 	 * @param string $userIP
-	 * @return User|boolean
+	 * @return User|bool
 	 */
 	static function getUserFromDB( $userID, $userIP ) {
 		if ( $userID ) {
@@ -237,7 +236,7 @@ class WikiForumClass {
 	/**
 	 * Get the link to the specified user's userpage (and group membership)
 	 *
-	 * @param User $user: user object
+	 * @param User $user user object
 	 * @return HTML
 	 */
 	public static function showUserLink( User $user, $showTitle = true ) {
@@ -257,19 +256,19 @@ class WikiForumClass {
 				$groupText .= wfMessage( 'word-separator' )->plain() .
 					wfMessage(
 						'parentheses',
-						User::makeGroupLinkHTML( 'sysop', User::getGroupMember( 'sysop', $username ) )
+						UserGroupMembership::getLink( 'sysop', RequestContext::getMain(), 'html', $username )
 					)->text();
 
 			} elseif ( in_array( 'forumadmin', $groups ) ) {
 				$groupText .= wfMessage( 'word-separator' )->plain() .
 					wfMessage(
 						'parentheses',
-						User::makeGroupLinkHTML( 'forumadmin', User::getGroupMember( 'forumadmin', $username ) )
+						UserGroupMembership::getLink( 'forumadmin', RequestContext::getMain(), 'html', $username )
 					)->text();
 			}
 		}
 
-		Hooks::run( 'WikiForumSig', array( &$groupText, $user ) );
+		Hooks::run( 'WikiForumSig', [ &$groupText, $user ] );
 
 		$retVal .= $groupText;
 
@@ -280,19 +279,19 @@ class WikiForumClass {
 	 * Show the HTML for the avatar for the given user
 	 *
 	 * @param User $user
-	 * @return string: HTML, the avatar
+	 * @return string HTML, the avatar
 	 */
 	static function showAvatar( User $user ) {
 		$avatar = '<div class="wikiforum-avatar-container">';
 		if ( class_exists( 'wAvatar' ) ) {
-			$avatarObj = new wAvatar( $user->getId() , 'l' );
-			$avatar .= '<div class="wikiforum-avatar-image">'
-					.  $avatarObj->getAvatarURL()
-					.  '</div>';
+			$avatarObj = new wAvatar( $user->getId(), 'l' );
+			$avatar .= '<div class="wikiforum-avatar-image">';
+			$avatar .= $avatarObj->getAvatarURL();
+			$avatar .= '</div>';
 		}
 
 		$avatar .= '<div class="wikiforum-avatar-name">'
-			. WikiForumClass::showUserLink( $user, false )
+			. WikiForum::showUserLink( $user, false )
 			. '</div>'
 			. '</div>';
 
@@ -303,8 +302,8 @@ class WikiForumClass {
 		global $wgOut;
 
 		$text = $wgOut->parse( $text );
-		$text = WikiForumClass::parseLinks( $text );
-		$text = WikiForumClass::parseQuotes( $text );
+		$text = self::parseLinks( $text );
+		$text = self::parseQuotes( $text );
 
 		return $text;
 	}
@@ -318,7 +317,7 @@ class WikiForumClass {
 	static function parseLinks( $text ) {
 		$text = preg_replace_callback(
 			'/\[thread#(.*?)\]/i',
-			'WikiForumClass::threadLinkFromID', //array( $this, 'getThreadTitle' ),
+			'WikiForum::threadLinkFromID', // [ $this, 'getThreadTitle' ],
 			$text
 		);
 		return $text;
@@ -334,7 +333,7 @@ class WikiForumClass {
 		$thread = WFThread::newFromID( $id );
 		if ( $thread ) {
 			return '<i>' . $thread->showLink() . '</i>';
-		} else { //fallback, got to return something
+		} else { // fallback, got to return something
 			return $id;
 		}
 	}

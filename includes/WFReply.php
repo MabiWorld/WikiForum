@@ -12,7 +12,7 @@ class WFReply extends ContextSource {
 	/**
 	 * Return a new WFReply instance for the given reply ID
 	 *
-	 * @param int $id: ID to get the reply for
+	 * @param int $id ID to get the reply for
 	 * @return WFReply
 	 */
 	public static function newFromID( $id ) {
@@ -21,7 +21,7 @@ class WFReply extends ContextSource {
 		$data = $dbr->selectRow(
 			'wikiforum_replies',
 			'*',
-			array( 'wfr_reply_id' => $id ),
+			[ 'wfr_reply_id' => $id ],
 			__METHOD__
 		);
 
@@ -35,7 +35,7 @@ class WFReply extends ContextSource {
 	/**
 	 * Return a new WFReply instance for the given reply text content
 	 *
-	 * @param string $text: text to get the reply for
+	 * @param string $text text to get the reply for
 	 * @return WFReply
 	 */
 	public static function newFromText( $text ) {
@@ -44,7 +44,7 @@ class WFReply extends ContextSource {
 		$data = $dbr->selectRow(
 			'wikiforum_replies',
 			'*',
-			array( 'wfr_reply_text' => $text ),
+			[ 'wfr_reply_text' => $text ],
 			__METHOD__
 		);
 
@@ -58,7 +58,7 @@ class WFReply extends ContextSource {
 	/**
 	 * Returns a WFReply instance for the given SQL row
 	 *
-	 * @param stdClass $sql: row from the DB. Not resultWrapper!
+	 * @param stdClass $sql row from the DB. Not resultWrapper!
 	 * @return WFReply
 	 */
 	public static function newFromSQL( $sql ) {
@@ -95,7 +95,7 @@ class WFReply extends ContextSource {
 	/**
 	 * Get the reply's ID number
 	 *
-	 * @return int: the id
+	 * @return int the id
 	 */
 	function getId() {
 		return $this->data->wfr_reply_id;
@@ -104,7 +104,7 @@ class WFReply extends ContextSource {
 	/**
 	 * Get the ID of the user who posted the reply
 	 *
-	 * @return int: the ID
+	 * @return int the ID
 	 */
 	function getPostedById() {
 		return $this->data->wfr_user;
@@ -116,7 +116,7 @@ class WFReply extends ContextSource {
 	 * @return User
 	 */
 	function getPostedBy() {
-		return WikiForumClass::getUserFromDB( $this->data->wfr_user, $this->data->wfr_user_ip );
+		return WikiForum::getUserFromDB( $this->data->wfr_user, $this->data->wfr_user_ip );
 	}
 
 	/**
@@ -126,7 +126,7 @@ class WFReply extends ContextSource {
 	 */
 	function getEditedBy() {
 		if ( $this->hasBeenEdited() ) {
-			return WikiForumClass::getUserFromDB( $this->data->wfr_edit_user, $this->data->wfr_edit_user_ip );
+			return WikiForum::getUserFromDB( $this->data->wfr_edit_user, $this->data->wfr_edit_user_ip );
 		} else {
 			return false;
 		}
@@ -135,7 +135,7 @@ class WFReply extends ContextSource {
 	/**
 	 * Get this reply's parent thread
 	 *
-	 * @return WFThread: the thread
+	 * @return WFThread the thread
 	 */
 	function getThread() {
 		if ( !$this->thread ) {
@@ -147,7 +147,7 @@ class WFReply extends ContextSource {
 	/**
 	 * Has the reply been edited?
 	 *
-	 * @return boolean: true if it has, false if it has not
+	 * @return bool true if it has, false if it has not
 	 */
 	function hasBeenEdited() {
 		return $this->data->wfr_edit_timestamp == true;
@@ -184,7 +184,7 @@ class WFReply extends ContextSource {
 	/**
 	 * Deletes the reply
 	 *
-	 * @return string: HTML
+	 * @return string HTML
 	 */
 	function delete() {
 		$user = $this->getUser();
@@ -196,18 +196,18 @@ class WFReply extends ContextSource {
 				!$user->isAllowed( 'wikiforum-moderator' )
 			)
 		) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-delete', 'wikiforum-error-general' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-delete', 'wikiforum-error-general' );
 		}
 
 		$dbw = wfGetDB( DB_MASTER );
 		$result = $dbw->delete(
 			'wikiforum_replies',
-			array( 'wfr_reply_id' => $this->getId() ),
+			[ 'wfr_reply_id' => $this->getId() ],
 			__METHOD__
 		);
 
 		if ( !$result ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-delete', 'wikiforum-error-general' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-delete', 'wikiforum-error-general' );
 		}
 
 		# Update reply counts and latests for thread and forum.
@@ -216,18 +216,17 @@ class WFReply extends ContextSource {
 		return $this->getThread()->show();
 	}
 
-
 	/**
 	 * Edit the reply
 	 *
 	 * @param $text String: new reply text
-	 * @return string: HTML of thread
+	 * @return string HTML of thread
 	 */
 	function edit( $text ) {
 		$user = $this->getUser();
 
 		if ( strlen( $text ) == 0 ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-edit', 'wikiforum-error-no-reply' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-edit', 'wikiforum-error-no-reply' );
 		}
 
 		if ( $text == $this->getText() ) {
@@ -244,19 +243,19 @@ class WFReply extends ContextSource {
 				)
 			)
 		) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-edit', 'wikiforum-error-no-rights' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-edit', 'wikiforum-error-no-rights' );
 		}
 
 		$dbw = wfGetDB( DB_MASTER );
 		$result = $dbw->update(
 			'wikiforum_replies',
-			array(
+			[
 				'wfr_reply_text' => $text,
 				'wfr_edit_timestamp' => wfTimestampNow(),
 				'wfr_edit_user' => $user->getId(),
 				'wfr_edit_user_ip' => $this->getRequest()->getIP(),
-			),
-			array( 'wfr_reply_id' => $this->getId() ),
+			],
+			[ 'wfr_reply_id' => $this->getId() ],
 			__METHOD__
 		);
 
@@ -266,7 +265,7 @@ class WFReply extends ContextSource {
 	/**
 	 * Show this reply
 	 *
-	 * @return string: HTML the reply
+	 * @return string HTML the reply
 	 */
 	function show() {
 		$posted = $this->showPostedInfo();
@@ -275,10 +274,10 @@ class WFReply extends ContextSource {
 			$posted .= '<br /><i>' . $this->showEditedInfo() . '</i>';
 		}
 
-		$avatar = WikiForumClass::showAvatar( $this->getPostedBy() );
+		$avatar = WikiForum::showAvatar( $this->getPostedBy() );
 
 		return '<tr><td class="mw-wikiforum-thread-sub" colspan="2" id="reply_' . $this->getId() . '">' . $avatar .
-			WikiForumClass::parseIt( $this->getText() ) . WikiForumGui::showBottomLine( $posted, $this->showButtons() ) . '</td></tr>';
+			WikiForum::parseIt( $this->getText() ) . WikiForumGui::showBottomLine( $posted, $this->showButtons() ) . '</td></tr>';
 	}
 
 	/**
@@ -289,16 +288,16 @@ class WFReply extends ContextSource {
 	function showForSearch() {
 		$posted = $this->showPostedInfo();
 		$posted .= '<br />' . wfMessage( 'wikiforum-search-thread', $this->getThread()->showLink( $this->getId() ) )->text();
-		$avatar = WikiForumClass::showAvatar( $this->getPostedBy() );
+		$avatar = WikiForum::showAvatar( $this->getPostedBy() );
 
 		return '<tr><td class="mw-wikiforum-thread-sub" colspan="2" id="reply_' . $this->getId() . '">' . $avatar .
-			WikiForumClass::parseIt( $this->getText() ) . WikiForumGui::showBottomLine( $posted, '' ) . '</td></tr>';
+			WikiForum::parseIt( $this->getText() ) . WikiForumGui::showBottomLine( $posted, '' ) . '</td></tr>';
 	}
 
 	/**
 	 * Show the reply buttons: quote, edit and delete.
 	 *
-	 * @return string: HTML
+	 * @return string HTML
 	 */
 	function showButtons() {
 		global $wgExtensionAssetsPath;
@@ -307,7 +306,7 @@ class WFReply extends ContextSource {
 		$user = $this->getUser();
 
 		$specialPage = SpecialPage::getTitleFor( 'WikiForum' );
-		$editButtons = '<a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'thread' => $thread->getId(), 'quotereply' => $this->getId() ) ) ) . '#writereply">';
+		$editButtons = '<a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'thread' => $thread->getId(), 'quotereply' => $this->getId() ] ) ) . '#writereply">';
 		$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/comments_add.png" title="' . wfMessage( 'wikiforum-quote' )->text() . '" />';
 
 		if (
@@ -318,9 +317,9 @@ class WFReply extends ContextSource {
 				&& !$thread->isClosed()
 			)
 		) {
-			$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'editreply', 'reply' => $this->getId() ) ) ) . '#writereply">';
+			$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'editreply', 'reply' => $this->getId() ] ) ) . '#writereply">';
 			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/comment_edit.png" title="' . wfMessage( 'wikiforum-edit-reply' )->text() . '" />';
-			$editButtons .= '</a> <a href="javascript:confirmNavigation(\'' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'deletereply', 'reply' => $this->getId() ) ) ) . '\',\'' . htmlspecialchars( wfMessage( 'wikiforum-delete-reply-confirmation' ) ) . '\')">';
+			$editButtons .= '</a> <a href="javascript:confirmNavigation(\'' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'deletereply', 'reply' => $this->getId() ] ) ) . '\',\'' . htmlspecialchars( wfMessage( 'wikiforum-delete-reply-confirmation' ) ) . '\')">';
 			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/comment_delete.png" title="' . wfMessage( 'wikiforum-delete-reply' )->text() . '" />';
 		}
 
@@ -332,9 +331,9 @@ class WFReply extends ContextSource {
 	/**
 	 * Add a reply with the text $text to the thread with ID = $threadId.
 	 *
-	 * @param WFThread $thread: thread to reply to
-	 * @param string $text: reply text
-	 * @return string: HTML of thread
+	 * @param WFThread $thread thread to reply to
+	 * @param string $text reply text
+	 * @return string HTML of thread
 	 */
 	static function add( WFThread $thread, $text ) {
 		global $wgRequest, $wgUser, $wgWikiForumAllowAnonymous, $wgWikiForumLogInRC, $wgLang;
@@ -342,23 +341,22 @@ class WFReply extends ContextSource {
 		$timestamp = wfTimestampNow();
 
 		if ( !$wgWikiForumAllowAnonymous && !$wgUser->isLoggedIn() ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-rights' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-rights' );
 		}
 
 		if ( strlen( $text ) == 0 ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-reply' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-reply' );
 		}
 
 		if ( $thread->isClosed() ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-thread-closed' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-thread-closed' );
 		}
 
-		if ( WikiForumClass::useCaptcha() ) {
+		if ( WikiForum::useCaptcha() ) {
 			$captcha = ConfirmEditHooks::getInstance();
 			$captcha->setTrigger( 'wikiforum' );
-			$captcha->trigger = 'wikiforum';
-			if ( !ConfirmEditHooks::getInstance()->passCaptcha() ) {
-				$output = WikiForumClass::showErrorMessage('wikiforum-error-add', 'wikiforum-error-captcha');
+			if ( !$captcha->passCaptchaFromRequest( $wgRequest, $wgUser ) ) {
+				$output = WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-captcha' );
 				$thread->preloadText = $text;
 				$output .= $thread->show();
 				return $output;
@@ -369,63 +367,63 @@ class WFReply extends ContextSource {
 		$doublepost = $dbr->selectRow(
 			'wikiforum_replies',
 			'wfr_reply_id',
-			array(
+			[
 				'wfr_reply_text' => $text,
 				'wfr_user' => $wgUser->getId(),
 				'wfr_thread' => $thread->getId(),
 				'wfr_posted_timestamp > ' . ( $timestamp - ( 24 * 3600 ) )
-			),
+			],
 			__METHOD__
 		);
 
 		if ( $doublepost ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-double-post' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-double-post' );
 		}
 
 		$dbw = wfGetDB( DB_MASTER );
 		$result = $dbw->insert(
 			'wikiforum_replies',
-			array(
+			[
 				'wfr_reply_text' => $text,
 				'wfr_posted_timestamp' => $timestamp,
 				'wfr_user' => $wgUser->getId(),
 				'wfr_thread' => $thread->getId()
-			),
+			],
 			__METHOD__
 		);
 
 		if ( !$result ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-general' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-general' );
 		}
 
 		$dbw->update(
 			'wikiforum_threads',
-			array(
+			[
 				'wft_reply_count = wft_reply_count + 1',
 				'wff_last_thread_name' => $thread->getName(),
 				'wft_last_post_timestamp' => $timestamp,
 				'wft_last_post_user' => $wgUser->getId(),
 				'wft_last_post_user_ip' => $wgRequest->getIP(),
-			),
-			array( 'wft_thread' => $thread->getId() ),
+			],
+			[ 'wft_thread' => $thread->getId() ],
 			__METHOD__
 		);
 
 		$dbw->update(
 			'wikiforum_forums',
-			array( 'wff_reply_count = wff_reply_count + 1' ),
-			array( 'wff_forum' => $thread->getForum()->getId() ),
+			[ 'wff_reply_count = wff_reply_count + 1' ],
+			[ 'wff_forum' => $thread->getForum()->getId() ],
 			__METHOD__
 		);
 
 		$logEntry = new ManualLogEntry( 'forum', 'add-reply' );
 		$logEntry->setPerformer( $wgUser );
 		$logEntry->setTarget( SpeciaLPage::getTitleFor( 'WikiForum' ) );
-		$shortText = $wgLang->truncate( $text, 50 );
+		$shortText = $wgLang->truncateForDatabase( $text, 50 );
 		$logEntry->setComment( $shortText );
-		$logEntry->setParameters( array(
+		$logEntry->setParameters( [
 				'4::thread-name' => $thread->getName(),
-		) );
+		] );
 		$logid = $logEntry->insert();
 		if ( $wgWikiForumLogInRC ) {
 			$logEntry->publish( $logid );
@@ -437,14 +435,14 @@ class WFReply extends ContextSource {
 	/**
 	 * Show the editor for this reply
 	 *
-	 * @return string: HTML, the editor
+	 * @return string HTML, the editor
 	 */
 	function showEditor() {
-		return WFReply::showGeneralEditor(
-			array(
+		return self::showGeneralEditor(
+			[
 				'wfaction' => 'savereply',
 				'reply' => $this->getId()
-			),
+			],
 			$this->getText(),
 			true
 		);
@@ -453,8 +451,8 @@ class WFReply extends ContextSource {
 	/**
 	 * Show the reply editor
 	 *
-	 * @param array $params: URL params to be passed to form
-	 * @param string $textValue: value to preload the editor with
+	 * @param array $params URL params to be passed to form
+	 * @param string $textValue value to preload the editor with
 	 * @return string
 	 */
 	static function showGeneralEditor( $params, $text_prev = '', $showCancel = false ) {
