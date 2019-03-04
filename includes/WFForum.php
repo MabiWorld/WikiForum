@@ -22,7 +22,7 @@ class WFForum extends ContextSource {
 		$data = $dbr->selectRow(
 			'wikiforum_forums',
 			'*',
-			array( 'wff_forum' => $id ),
+			[ 'wff_forum' => $id ],
 			__METHOD__
 		);
 
@@ -36,7 +36,7 @@ class WFForum extends ContextSource {
 	/**
 	 * Get a new forum object from the given database row
 	 *
-	 * @param stdClass $sql: DB row. Must be a row, not a ResultWrapper!
+	 * @param stdClass $sql DB row. Must be a row, not a ResultWrapper!
 	 * @return WFForum
 	 */
 	public static function newFromSQL( $sql ) {
@@ -46,8 +46,8 @@ class WFForum extends ContextSource {
 	/**
 	 * Get a WFForum object for the given title
 	 *
-	 * @param string $title: title to get forum for
-	 * @return WFForum|boolean: the forum, or false on failure
+	 * @param string $title title to get forum for
+	 * @return WFForum|bool the forum, or false on failure
 	 */
 	public static function newFromName( $title ) {
 		$dbr = wfGetDB( DB_REPLICA );
@@ -55,7 +55,7 @@ class WFForum extends ContextSource {
 		$data = $dbr->selectRow(
 			'wikiforum_forums',
 			'*',
-			array( 'wff_forum_name' => $title ),
+			[ 'wff_forum_name' => $title ],
 			__METHOD__
 		);
 
@@ -69,7 +69,7 @@ class WFForum extends ContextSource {
 	/**
 	 * Is this an annoucement forum?
 	 *
-	 * @return boolean
+	 * @return bool
 	 */
 	function isAnnouncement() {
 		return $this->data->wff_announcement == true;
@@ -105,7 +105,7 @@ class WFForum extends ContextSource {
 	/**
 	 * Get this forum's ID number
 	 *
-	 * @return int: the ID
+	 * @return int the ID
 	 */
 	function getId() {
 		return $this->data->wff_forum;
@@ -135,7 +135,7 @@ class WFForum extends ContextSource {
 	 * @return User
 	 */
 	function getLastPostUser() {
-		return WikiForumClass::getUserFromDB( $this->data->wff_last_post_user, $this->data->wff_last_post_user_ip );
+		return WikiForum::getUserFromDB( $this->data->wff_last_post_user, $this->data->wff_last_post_user_ip );
 	}
 
 	/**
@@ -171,8 +171,8 @@ class WFForum extends ContextSource {
 	/**
 	 * Get an array of this forum's children threads
 	 *
-	 * @param array $orderBy: SQL fragment for ordering by
-	 * @return multitype:WFThread: array of threads
+	 * @param array $orderBy SQL fragment for ordering by
+	 * @return multitype:WFThread array of threads
 	 */
 	function getThreads( $orderBy = '' ) {
 		if ( !$this->threads ) {
@@ -181,14 +181,14 @@ class WFForum extends ContextSource {
 			$sqlThreads = $dbr->select(
 				'wikiforum_threads',
 				'*',
-				array( 'wft_forum' => $this->getId() ),
+				[ 'wft_forum' => $this->getId() ],
 				__METHOD__,
-				array( 'ORDER BY' => array( 'wft_sticky DESC', $orderBy ) )
+				[ 'ORDER BY' => [ 'wft_sticky DESC', $orderBy ] ]
 			);
 
-			$threads = array();
+			$threads = [];
 
-			foreach( $sqlThreads as $sql ) {
+			foreach ( $sqlThreads as $sql ) {
 				$thread = WFThread::newFromSQL( $sql );
 				$thread->forum = $this; // saves thread making DB query to find this
 				$threads[] = $thread;
@@ -220,7 +220,7 @@ class WFForum extends ContextSource {
 	/**
 	 * Get the URL to this forum
 	 *
-	 * @return string: the URL
+	 * @return string the URL
 	 */
 	function getURL() {
 		global $wgWikiForumForumPath;
@@ -229,13 +229,13 @@ class WFForum extends ContextSource {
 
 		$page = SpecialPage::getTitleFor( 'WikiForum' );
 
-		return htmlspecialchars( $page->getFullURL( array( 'forum' => $this->getId() ) ) );
+		return htmlspecialchars( $page->getFullURL( [ 'forum' => $this->getId() ] ) );
 	}
 
 	/**
 	 * Show a link to this forum, with icon
 	 *
-	 * @return string: HTML, the link
+	 * @return string HTML, the link
 	 */
 	function showLink() {
 		global $wgExtensionAssetsPath;
@@ -256,7 +256,7 @@ class WFForum extends ContextSource {
 	/**
 	 * Show an item (row) for a list (table) for this forum. The sort you find on category pages, and the overview
 	 *
-	 * @return string: HTML, the row.
+	 * @return string HTML, the row.
 	 */
 	function showListItem() {
 		$output = '<tr class="mw-wikiforum-marked"> <td class="mw-wikiforum-title">
@@ -288,17 +288,17 @@ class WFForum extends ContextSource {
 			$specialPage = SpecialPage::getTitleFor( 'WikiForum' );
 
 			$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/folder_edit.png" title="' . wfMessage( 'wikiforum-edit-forum' )->text() . '" />';
-			$link = ' <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'editforum', 'forum' => $this->getId() ) ) ) . '">' . $icon . '</a>';
+			$link = ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'editforum', 'forum' => $this->getId() ] ) ) . '">' . $icon . '</a>';
 
 			$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/folder_delete.png" title="' . wfMessage( 'wikiforum-delete-forum' )->text() . '" />';
-			$link .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'deleteforum', 'forum' => $this->getId() ) ) ) . '">' . $icon . '</a>';
+			$link .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'deleteforum', 'forum' => $this->getId() ] ) ) . '">' . $icon . '</a>';
 
 			if ( $sort ) {
 				$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/arrow_up.png" title="' . wfMessage( 'wikiforum-sort-up' )->text() . '" />';
-				$link .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'forumup', 'forum' => $this->getId() ) ) ) . '">' . $icon . '</a>';
+				$link .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'forumup', 'forum' => $this->getId() ] ) ) . '">' . $icon . '</a>';
 
 				$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/arrow_down.png" title="' . wfMessage( 'wikiforum-sort-down' )->text() . '" />';
-				$link .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'forumdown', 'forum' => $this->getId() ) ) ) . '">' . $icon . '</a>';
+				$link .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'forumdown', 'forum' => $this->getId() ] ) ) . '">' . $icon . '</a>';
 			}
 		}
 
@@ -308,9 +308,9 @@ class WFForum extends ContextSource {
 	/**
 	 * Add a new thread to this forum
 	 *
-	 * @param string $title: user-supplied title
-	 * @param string $text: user-supplied text
-	 * @return WFThread|boolean: the thread on success, or false on failure
+	 * @param string $title user-supplied title
+	 * @param string $text user-supplied text
+	 * @return WFThread|bool the thread on success, or false on failure
 	 */
 	function addThread( $title, $text ) {
 		return WFThread::add( $this, $title, $text );
@@ -322,17 +322,17 @@ class WFForum extends ContextSource {
 	 * @param $forumName String: forum name as supplied by the user
 	 * @param $description String: forum description as supplied by the user
 	 * @param $announcement boolean
-	 * @return string: HTML
+	 * @return string HTML
 	 */
 	function edit( $forumName, $description, $announcement ) {
 		$user = $this->getUser();
 
 		if ( !$user->isAllowed( 'wikiforum-admin' ) ) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-rights' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-rights' );
 			return $error . $this->show();
 		}
 		if ( strlen( $forumName ) == 0 ) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-text-or-title' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-text-or-title' );
 			return $error . $this->showEditForm();
 		}
 
@@ -346,15 +346,15 @@ class WFForum extends ContextSource {
 			$dbw = wfGetDB( DB_MASTER );
 			$dbw->update(
 				'wikiforum_forums',
-				array(
+				[
 					'wff_forum_name' => $forumName,
 					'wff_description' => $description,
 					'wff_edited_timestamp' => wfTimestampNow(),
 					'wff_edited_user' => $user->getId(),
 					'wff_edited_user_ip' => $this->getRequest()->getIP(),
 					'wff_announcement' => $announcement
-				),
-				array( 'wff_forum' => $this->getId() ),
+				],
+				[ 'wff_forum' => $this->getId() ],
 				__METHOD__
 			);
 		}
@@ -372,20 +372,20 @@ class WFForum extends ContextSource {
 	/**
 	 * Deletes the forum
 	 *
-	 * @return string: HTML
+	 * @return string HTML
 	 */
 	function delete() {
 		$user = $this->getUser();
 
 		if ( !$user->isAllowed( 'wikiforum-admin' ) ) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-delete', 'wikiforum-error-general' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-delete', 'wikiforum-error-general' );
 			return $error . $this->show();
 		}
 
 		$dbw = wfGetDB( DB_MASTER );
 		$result = $dbw->delete(
 			'wikiforum_forums',
-			array( 'wff_forum' => $this->getId() ),
+			[ 'wff_forum' => $this->getId() ],
 			__METHOD__
 		);
 
@@ -464,7 +464,7 @@ class WFForum extends ContextSource {
 	/**
 	 * Show this forum, including frames, headers, et al.
 	 *
-	 * @return string: HTML the forum
+	 * @return string HTML the forum
 	 */
 	function show() {
 		global $wgExtensionAssetsPath;
@@ -483,7 +483,7 @@ class WFForum extends ContextSource {
 			$write_thread = '';
 		} else {
 			$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_add.png" title="' . wfMessage( 'wikiforum-write-thread' )->text() . '" /> ';
-			$write_thread = $icon . '<a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'addthread', 'forum' => $this->getId() ) ) ) . '">' .
+			$write_thread = $icon . '<a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'addthread', 'forum' => $this->getId() ] ) ) . '">' .
 					wfMessage( 'wikiforum-write-thread' ) . '</a>';
 		}
 
@@ -496,21 +496,21 @@ class WFForum extends ContextSource {
 		// @see http://bugzilla.shoutwiki.com/show_bug.cgi?id=174
 		$output .= WikiForumGui::showMainHeader(
 			$this->getName() . ' <a href="' .
-			htmlspecialchars( $specialPage->getFullURL( array( 'st' => 'thread', 'sd' => 'up', 'forum' => $this->getId() ) ) ) . '">' . $up .
+			htmlspecialchars( $specialPage->getFullURL( [ 'st' => 'thread', 'sd' => 'up', 'forum' => $this->getId() ] ) ) . '">' . $up .
 			'</a><a href="' .
-			htmlspecialchars( $specialPage->getFullURL( array( 'st' => 'thread', 'sd' => 'down', 'forum' => $this->getId() ) ) ) . '">' . $down . '</a>',
+			htmlspecialchars( $specialPage->getFullURL( [ 'st' => 'thread', 'sd' => 'down', 'forum' => $this->getId() ] ) ) . '">' . $down . '</a>',
 
 			wfMessage( 'wikiforum-replies' )->text() . ' <br /><a href="' .
-			htmlspecialchars( $specialPage->getFullURL( array( 'st' => 'answers', 'sd' => 'up', 'forum' => $this->getId() ) ) ) . '">' . $up .
-			'</a><a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'st' => 'answers', 'sd' => 'down', 'forum' => $this->getId() ) ) ) . '">' . $down . '</a>',
+			htmlspecialchars( $specialPage->getFullURL( [ 'st' => 'answers', 'sd' => 'up', 'forum' => $this->getId() ] ) ) . '">' . $up .
+			'</a><a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'st' => 'answers', 'sd' => 'down', 'forum' => $this->getId() ] ) ) . '">' . $down . '</a>',
 
 			wfMessage( 'wikiforum-views' )->text() . ' <br /><a href="' .
-			htmlspecialchars( $specialPage->getFullURL( array( 'st' => 'calls', 'sd' => 'up', 'forum' => $this->getId() ) ) ) . '">' . $up . '</a><a href="' .
-			htmlspecialchars( $specialPage->getFullURL( array( 'st' => 'calls', 'sd' => 'down', 'forum' => $this->getId() ) ) ) . '">' . $down . '</a>',
+			htmlspecialchars( $specialPage->getFullURL( [ 'st' => 'calls', 'sd' => 'up', 'forum' => $this->getId() ] ) ) . '">' . $up . '</a><a href="' .
+			htmlspecialchars( $specialPage->getFullURL( [ 'st' => 'calls', 'sd' => 'down', 'forum' => $this->getId() ] ) ) . '">' . $down . '</a>',
 
 			wfMessage( 'wikiforum-latest-reply' )->text() . ' <br /><a href="' .
-			htmlspecialchars( $specialPage->getFullURL( array( 'st' => 'last', 'sd' => 'up', 'forum' => $this->getId() ) ) ) . '">' . $up .
-			'</a><a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'st' => 'last', 'sd' => 'up', 'forum' => $this->getId() ) ) ) . '">' . $down . '</a>'
+			htmlspecialchars( $specialPage->getFullURL( [ 'st' => 'last', 'sd' => 'up', 'forum' => $this->getId() ] ) ) . '">' . $up .
+			'</a><a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'st' => 'last', 'sd' => 'up', 'forum' => $this->getId() ] ) ) . '">' . $down . '</a>'
 		);
 
 		// sorting
@@ -566,7 +566,7 @@ class WFForum extends ContextSource {
 	/**
 	 * Sort this forum upwards
 	 *
-	 * @return string: HTML
+	 * @return string HTML
 	 */
 	function sortUp() {
 		return $this->sort( true );
@@ -575,7 +575,7 @@ class WFForum extends ContextSource {
 	/**
 	 * Sort this forum downwards
 	 *
-	 * @return string: HTML
+	 * @return string HTML
 	 */
 	function sortDown() {
 		return $this->sort( false );
@@ -593,37 +593,37 @@ class WFForum extends ContextSource {
 
 			$sqlData = $dbr->select( // select all forums in the same category as this
 				'wikiforum_forums',
-				array( 'wff_forum', 'wff_sortkey' ),
-				array( 'wff_category' => $this->getCategory()->getId() ),
+				[ 'wff_forum', 'wff_sortkey' ],
+				[ 'wff_category' => $this->getCategory()->getId() ],
 				__METHOD__,
-				array( 'ORDER BY' => 'wff_sortkey ASC' )
+				[ 'ORDER BY' => 'wff_sortkey ASC' ]
 			);
 
 			$i = 0;
-			$new_array = array();
+			$new_array = [];
 			foreach ( $sqlData as $entry ) {
 				$entry->wff_sortkey = $i;
 				array_push( $new_array, $entry );
 				$i++;
 			}
-			for ( $i = 0; $i < sizeof( $new_array ); $i++ ) {
+			for ( $i = 0; $i < count( $new_array ); $i++ ) {
 				if ( $new_array[$i]->wff_forum == $this->getId() ) {
 					if ( $direction_up && $i > 0 ) {
 						$new_array[$i]->wff_sortkey--;
 						$new_array[$i - 1]->wff_sortkey++;
-					} elseif ( !$direction_up && $i + 1 < sizeof( $new_array ) ) {
+					} elseif ( !$direction_up && $i + 1 < count( $new_array ) ) {
 						$new_array[$i]->wff_sortkey++;
 						$new_array[$i + 1]->wff_sortkey--;
 					}
-					$i = sizeof( $new_array );
+					$i = count( $new_array );
 				}
 			}
 			$dbw = wfGetDB( DB_MASTER );
 			foreach ( $new_array as $entry ) {
 				$result = $dbw->update(
 					'wikiforum_forums',
-					array( 'wff_sortkey' => $entry->wff_sortkey ),
-					array( 'wff_forum' => $entry->wff_forum ),
+					[ 'wff_sortkey' => $entry->wff_sortkey ],
+					[ 'wff_forum' => $entry->wff_forum ],
 					__METHOD__
 				);
 			}
@@ -635,21 +635,21 @@ class WFForum extends ContextSource {
 	/**
 	 * Add a new forum
 	 *
-	 * @param WFCategory $category: category to add to
-	 * @param string $forumName: user-supplied name
-	 * @param string $description: user-supplied description
-	 * @param boolean $announcement: user-supplied announcement checkbox
-	 * @return string: HTML
+	 * @param WFCategory $category category to add to
+	 * @param string $forumName user-supplied name
+	 * @param string $description user-supplied description
+	 * @param bool $announcement user-supplied announcement checkbox
+	 * @return string HTML
 	 */
 	static function add( WFCategory $category, $forumName, $description, $announcement ) {
 		global $wgWikiForumLogInRC, $wgUser, $wgRequest, $wgLang;
 
 		if ( strlen( $forumName ) == 0 ) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-text-or-title' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-text-or-title' );
 			return $error . $category->showAddForumForm();
 		}
 		if ( !$wgUser->isAllowed( 'wikiforum-admin' ) ) {
-			$error = WikiForumClass::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-rights' );
+			$error = WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-no-rights' );
 			return $error . $category->show();
 		}
 
@@ -658,14 +658,14 @@ class WFForum extends ContextSource {
 		$sortKey = $dbr->selectRow(
 			'wikiforum_forums',
 			'MAX(wff_sortkey) AS the_key',
-			array( 'wff_category' => $category->getId() ),
+			[ 'wff_category' => $category->getId() ],
 			__METHOD__
 		);
 
 		$dbw = wfGetDB( DB_MASTER );
 		$dbw->insert(
 			'wikiforum_forums',
-			array(
+			[
 				'wff_forum_name' => $forumName,
 				'wff_description' => $description,
 				'wff_category' => $category->getId(),
@@ -674,22 +674,22 @@ class WFForum extends ContextSource {
 				'wff_added_user' => $wgUser->getId(),
 				'wff_added_user_ip' => $wgRequest->getIP(),
 				'wff_announcement' => $announcement
-			),
+			],
 			__METHOD__
 		);
 
-		$forum = WFForum::newFromName( $forumName );
+		$forum = self::newFromName( $forumName );
 		$forum->category = $category;
 
 		$logEntry = new ManualLogEntry( 'forum', 'add-forum' );
 		$logEntry->setPerformer( $wgUser );
 		$logEntry->setTarget( SpecialPage::getTitleFor( 'WikiForum' ) );
-		$shortText = $wgLang->truncate( $description, 50 );
+		$shortText = $wgLang->truncateForDatabase( $description, 50 );
 		$logEntry->setComment( $shortText );
-		$logEntry->setParameters( array(
+		$logEntry->setParameters( [
 			'4::forum-url' => $forum->getURL(),
 			'5::forum-name' => $forumName
-		) );
+		] );
 		$logid = $logEntry->insert();
 		if ( $wgWikiForumLogInRC ) {
 			$logEntry->publish( $logid );
@@ -713,18 +713,18 @@ class WFForum extends ContextSource {
 	/**
 	 * Get the form for adding/editing forums.
 	 *
-	 * @param array $params: URL parameters
-	 * @param string $titlePlaceholder: placeholder attribute for the title input
-	 * @param string $titleValue: value attribute for the title input
-	 * @param boolean $announcement: value for the announcement checkbox
-	 * @param string $formTitle: title to label the form with
+	 * @param array $params URL parameters
+	 * @param string $titlePlaceholder placeholder attribute for the title input
+	 * @param string $titleValue value attribute for the title input
+	 * @param bool $announcement value for the announcement checkbox
+	 * @param string $formTitle title to label the form with
 	 * @return string HTML, the form
 	 */
 	static function showForm( $params, $titlePlaceholder = '', $titleValue = '', $textValue = '', $announcement = false, $formTitle ) {
 		global $wgUser;
 
 		if ( !$wgUser->isAllowed( 'wikiforum-admin' ) ) {
-			return WikiForumClass::showErrorMessage( 'wikiforum-error-write', 'wikiforum-error-no-rights' );
+			return WikiForum::showErrorMessage( 'wikiforum-error-write', 'wikiforum-error-no-rights' );
 		}
 
 		$titlePlaceholder = str_replace( '"', '&quot;', $titlePlaceholder );
@@ -756,31 +756,31 @@ class WFForum extends ContextSource {
 	/**
 	 * Show the form for editing this forum
 	 *
-	 * @return string: HTML, the form
+	 * @return string HTML, the form
 	 */
 	function showEditForm() {
-		$params = array( 'wfaction' => 'saveforum', 'forum' => $this->getId() );
+		$params = [ 'wfaction' => 'saveforum', 'forum' => $this->getId() ];
 		return self::showForm( $params, '', $this->getName(), $this->getText(), $this->isAnnouncement(), wfMessage( 'wikiforum-edit-forum' )->text() );
 	}
 
 	/**
 	 * Show the editor for adding a new thread to this forum
 	 *
-	 * @return string: HTML the editor
+	 * @return string HTML the editor
 	 */
 	function showNewThreadForm( $preloadTitle, $preloadText ) {
 		return WFThread::showGeneralEditor(
 			$preloadTitle,
 			wfMessage( 'wikiforum-thread-title' )->text(),
 			$preloadText,
-			array(
+			[
 				'wfaction' => 'savenewthread',
 				'forum' => $this->getId()
-			)
+			]
 		);
 	}
 
 	function showFooterRow( $page, $limit ) {
-		return WikiForumGui::showFooterRow( $page, $this->getThreadCount(), $limit, array( 'forum' => $this->getId() ) );
+		return WikiForumGui::showFooterRow( $page, $this->getThreadCount(), $limit, [ 'forum' => $this->getId() ] );
 	}
 }
