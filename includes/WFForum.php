@@ -402,28 +402,28 @@ class WFForum extends ContextSource {
   
   		$reply = $dbw->selectRow(
   			'wikiforum_threads',
-  			array(
+  			[
   				'wft_thread_name',
   				'wft_last_post_user',
   				'wft_last_post_user_ip',
   				'wft_last_post_timestamp',
-  			),
-  			array( 'wft_forum' => $this->getId() ),
+  			],
+  			[ 'wft_forum' => $this->getId() ],
   			__METHOD__,
-  			array( 'LIMIT' => 1, 'ORDER BY' => 'wft_last_post_timestamp desc' )
+  			[ 'LIMIT' => 1, 'ORDER BY' => 'wft_last_post_timestamp desc' ]
   		);
   
   		$thread = $dbw->selectRow(
   			'wikiforum_threads',
-  			array(
+  			[
   				'wft_thread_name',
   				'wft_user',
   				'wft_user_ip',
   				'wft_posted_timestamp',
-  			),
-  			array( 'wft_forum' => $this->getId() ),
+  			],
+  			[ 'wft_forum' => $this->getId() ],
   			__METHOD__,
-  			array( 'LIMIT' => 1, 'ORDER BY' => 'wft_posted_timestamp desc' )
+  			[ 'LIMIT' => 1, 'ORDER BY' => 'wft_posted_timestamp desc' ]
   		);
   
   		if ( !$thread || !$thread->wft_user
@@ -448,15 +448,15 @@ class WFForum extends ContextSource {
   		// Update the forum table so that the data shown on Special:WikiForum is up to date
   		return $dbw->update(
   			'wikiforum_forums',
-  			array(
+  			[
   				"wff_reply_count = wff_reply_count - $decReplies",
   				"wff_thread_count = wff_thread_count - $decThreads",
   				'wff_last_thread_name' => $row->wft_thread_name,
   				'wff_last_post_user' => $row->wft_last_post_user,
   				'wff_last_post_user_ip' => $row->wft_last_post_user_ip,
   				'wff_last_post_timestamp' => $row->wft_last_post_timestamp
-  			),
-  			array( 'wff_forum' => $this->getId() ),
+  			],
+  			[ 'wff_forum' => $this->getId() ],
   			__METHOD__
   		);
   	}

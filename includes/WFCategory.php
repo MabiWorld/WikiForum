@@ -453,7 +453,7 @@ class WFCategory extends ContextSource {
 	/**
 	 * Get the form for adding/editing categories and forums.
 	 *
-	 * @param $params Array: URL parameters (like array( 'foo' => 'bar' ) or so)
+	 * @param $params Array: URL parameters (like [ 'foo' => 'bar' ] or so)
 	 * @param $titlePlaceholder
 	 * @param $titleValue
 	 * @param $formTitle

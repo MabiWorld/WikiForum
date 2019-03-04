@@ -156,7 +156,7 @@ class WikiForum {
 		if ( isset( $filters[ 'category_ids' ] ) ) {
 			$category_ids = $filters[ 'category_ids' ];
 		} else {
-			$category_ids = array();
+			$category_ids = [];
 		}
 
 		$dbr = wfGetDB( DB_SLAVE );
@@ -165,9 +165,9 @@ class WikiForum {
 			$sqlCategories = $dbr->select(
 				'wikiforum_category',
 				'*',
-				array( 'wfc_category_name' => $filters[ 'categories' ] ),
+				[ 'wfc_category_name' => $filters[ 'categories' ] ],
 				__METHOD__,
-				array()
+				[]
 			);
 
 			foreach ( $sqlCategories as $sql ) {
@@ -180,29 +180,29 @@ class WikiForum {
 		// TODO: Forums, Users
 
 		$replies = $dbr->select(
-			array( 'wikiforum_replies', 'wikiforum_threads', 'wikiforum_forums' ),
+			[ 'wikiforum_replies', 'wikiforum_threads', 'wikiforum_forums' ],
 			'*',
-			array( 'wff_category' => $category_ids ),
+			[ 'wff_category' => $category_ids ],
 			__METHOD__,
-			array( 'ORDER BY' => 'wfr_posted_timestamp DESC', 'LIMIT' => $limit ),
-			array(
+			[ 'ORDER BY' => 'wfr_posted_timestamp DESC', 'LIMIT' => $limit ],
+			[
 				'wikiforum_threads' => array( 'INNER JOIN', array( 'wfr_thread=wft_thread' ) ),
 				'wikiforum_forums'  => array( 'INNER JOIN', array( 'wft_forum=wff_forum' ) ),
-			)
+			]
 		);
 
 		$threads = $dbr->select(
-			array( 'wikiforum_threads', 'wikiforum_forums' ),
+			[ 'wikiforum_threads', 'wikiforum_forums' ],
 			'*',
-			array( 'wff_category' => $category_ids ),
+			[ 'wff_category' => $category_ids ],
 			__METHOD__,
-			array( 'ORDER BY' => 'wft_posted_timestamp DESC', 'LIMIT' => $limit ),
-			array(
-                'wikiforum_forums'  => array( 'INNER JOIN', array( 'wft_forum=wff_forum' ) ),
-            )
+			[ 'ORDER BY' => 'wft_posted_timestamp DESC', 'LIMIT' => $limit ],
+			[
+				'wikiforum_forums'  => [ 'INNER JOIN', [ 'wft_forum=wff_forum' ] ],
+			]
 		);
 
-		$posts = array();
+		$posts = [];
 		foreach ( $replies as $sql ) {
 			array_push( $posts, WFReply::newFromSQL( $sql ) );
 		}
@@ -317,7 +317,7 @@ class WikiForum {
 	static function parseLinks( $text ) {
 		$text = preg_replace_callback(
 			'/\[thread#(.*?)\]/i',
-			'WikiForum::threadLinkFromID', // array( $this, 'getThreadTitle' ),
+			'WikiForum::threadLinkFromID', // [ $this, 'getThreadTitle' ],
 			$text
 		);
 		return $text;

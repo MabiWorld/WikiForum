@@ -371,14 +371,14 @@ class WFThread extends ContextSource {
 		$dbw = wfGetDB( DB_MASTER );
 		$row = $dbw->selectRow(
 			'wikiforum_replies',
-			array(
+			[
 				'wfr_user',
 				'wfr_user_ip',
 				'wfr_posted_timestamp'
-			),
-			array( 'wfr_thread' => $this->getId() ),
+			],
+			[ 'wfr_thread' => $this->getId() ],
 			__METHOD__,
-			array( 'LIMIT' => 1, 'ORDER BY' => 'wfr_posted_timestamp desc' )
+			[ 'LIMIT' => 1, 'ORDER BY' => 'wfr_posted_timestamp desc' ]
 		);
 
   		if ( !$row || count(get_object_vars($row)) == 0 ) {
@@ -390,13 +390,13 @@ class WFThread extends ContextSource {
   
   		$result = $dbw->update(
   			'wikiforum_threads',
- 			array(
+ 			[
   				"wft_reply_count = wft_reply_count - $decReplies",
   				'wft_last_post_user' => $row->wfr_user,
   				'wft_last_post_user_ip' => $row->wfr_user_ip,
   				'wft_last_post_timestamp' => $row->wfr_posted_timestamp
-			),
-			array( 'wft_thread' => $this->getId() ),
+			],
+			[ 'wft_thread' => $this->getId() ],
 			__METHOD__
 		);
 
@@ -541,27 +541,27 @@ class WFThread extends ContextSource {
 		}
 
 		$dbw = wfGetDB( DB_MASTER );
-		$dbUpdate = array(
+		$dbUpdate = [
 			'wft_thread_name' => $title,
 			'wft_edit_timestamp' => wfTimestampNow(),
 			'wft_edit_user' => $user->getId(),
 			'wft_edit_user_ip' => $this->getRequest()->getIP(),
-		);
+		];
 		if ( $text ) $dbUpdate['wft_text'] = $text;
 
  		$result = $dbw->update(
  			'wikiforum_threads',
 			$dbUpdate,
-			array( 'wft_thread' => $this->getId() ),
+			[ 'wft_thread' => $this->getId() ],
 			__METHOD__
 		);
 
 		$result = $dbw->update(
 			'wikiforum_forums',
-			array(
+			[
 				'wff_last_thread_name' => $title,
-			),
-			array( 'wff_last_thread_name' => $this->data->wft_thread_name ),
+			],
+			[ 'wff_last_thread_name' => $this->data->wft_thread_name ],
 			__METHOD__
 		);
 
@@ -607,10 +607,10 @@ class WFThread extends ContextSource {
 			$dbw = wfGetDB( DB_MASTER );
 			$result = $dbw->update(
 				'wikiforum_threads',
-				array(
+				[
 					'wft_forum' => $newForumID,
-				),
-				array( 'wft_thread' => $this->getId() ),
+				],
+				[ 'wft_thread' => $this->getId() ],
 				__METHOD__
 			);
 
@@ -854,10 +854,10 @@ class WFThread extends ContextSource {
 			$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'editthread', 'thread' => $this->getId() ] ) ) . '">';
 			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_edit.png" title="' . wfMessage( 'wikiforum-edit-thread' )->text() . '" />';
 			if ( $isMod ) {
-				$editButtons .= '</a> <a href="' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'movethread', 'thread' => $this->getId() ) ) ) . '">';
+				$editButtons .= '</a> <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'movethread', 'thread' => $this->getId() ] ) ) . '">';
 				$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_go.png" title="' . wfMessage( 'wikiforum-move-thread' )->text() . '" />';
 			}
-			$editButtons .= '</a> <a href="javascript:confirmNavigation(\'' . htmlspecialchars( $specialPage->getFullURL( array( 'wfaction' => 'deletethread', 'thread' => $this->getId() ) ) ) . '\',\'' . htmlspecialchars( wfMessage( 'wikiforum-delete-thread-confirmation' ) ) . '\')">';
+			$editButtons .= '</a> <a href="javascript:confirmNavigation(\'' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'deletethread', 'thread' => $this->getId() ] ) ) . '\',\'' . htmlspecialchars( wfMessage( 'wikiforum-delete-thread-confirmation' ) ) . '\')">';
 			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_delete.png" title="' . wfMessage( 'wikiforum-delete-thread' )->text() . '" />';
 			$editButtons .= '</a> ';
 
@@ -1080,9 +1080,9 @@ class WFThread extends ContextSource {
 		$sqlForums = $dbr->select(
 			'wikiforum_forums',
 			'*',
-			array( ),
+			[],
 			__METHOD__,
-			array( 'ORDER BY' => 'wff_category ASC, wff_sortkey ASC, wff_forum ASC' )
+			[ 'ORDER BY' => 'wff_category ASC, wff_sortkey ASC, wff_forum ASC' ]
 		);
 
 		$row = '<tr><td><select name="forum">';
@@ -1097,10 +1097,10 @@ class WFThread extends ContextSource {
 
 		$row .= '</td></tr>';
 
-		$url = htmlspecialchars( SpecialPage::getTitleFor( 'WikiForum' )->getFullURL( array(
+		$url = htmlspecialchars( SpecialPage::getTitleFor( 'WikiForum' )->getFullURL( [
 			'wfaction' => 'domovethread',
 			'thread' => $this->getId(),
-		) ) );
+		] ) );
 
 		$title = $this->getName();
 		
