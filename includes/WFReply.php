@@ -400,7 +400,6 @@ class WFReply extends ContextSource {
 			'wikiforum_threads',
 			[
 				'wft_reply_count = wft_reply_count + 1',
-				'wff_last_thread_name' => $thread->getName(),
 				'wft_last_post_timestamp' => $timestamp,
 				'wft_last_post_user' => $wgUser->getId(),
 				'wft_last_post_user_ip' => $wgRequest->getIP(),
@@ -411,7 +410,10 @@ class WFReply extends ContextSource {
 
 		$dbw->update(
 			'wikiforum_forums',
-			[ 'wff_reply_count = wff_reply_count + 1' ],
+			[
+				'wff_reply_count = wff_reply_count + 1',
+				'wff_last_thread_name' => $thread->getName(),
+			],
 			[ 'wff_forum' => $thread->getForum()->getId() ],
 			__METHOD__
 		);
