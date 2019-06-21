@@ -122,6 +122,7 @@ class WikiForumHooks {
 			$updater->addExtensionField( 'wikiforum_category', 'wfc_edited_user_ip', $file );
 			// wikiforum_forums
 			$updater->addExtensionField( 'wikiforum_forums', 'wff_last_post_user_ip', $file );
+			$updater->addExtensionField( 'wikiforum_forums', 'wff_last_thread_name', $file );
 			$updater->addExtensionField( 'wikiforum_forums', 'wff_added_user_ip', $file );
 			$updater->addExtensionField( 'wikiforum_forums', 'wff_edited_user_ip', $file );
 			// wikiforum_threads

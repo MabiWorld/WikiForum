@@ -291,7 +291,7 @@ class WFForum extends ContextSource {
 			$link = ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'editforum', 'forum' => $this->getId() ] ) ) . '">' . $icon . '</a>';
 
 			$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/folder_delete.png" title="' . wfMessage( 'wikiforum-delete-forum' )->text() . '" />';
-			$link .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'deleteforum', 'forum' => $this->getId() ] ) ) . '">' . $icon . '</a>';
+			$link .= ' <a href="javascript:confirmNavigation(\'' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'deleteforum', 'forum' => $this->getId() ] ) ) . '\')">' . $icon . '</a>';
 
 			if ( $sort ) {
 				$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/arrow_up.png" title="' . wfMessage( 'wikiforum-sort-up' )->text() . '" />';
