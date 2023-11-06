@@ -1,4 +1,7 @@
 <?php
+
+use MediaWiki\MediaWikiServices;
+
 /**
  * Special:WikiForum -- an overview of all available boards on the forum
  *
@@ -21,7 +24,7 @@ class SpecialWikiForum extends SpecialPage {
 	/**
 	 * Show the special page
 	 *
-	 * @param $par Mixed: parameter passed to the page or null
+	 * @param string|null $par parameter passed to the page or null
 	 */
 	public function execute( $par ) {
 		$out = $this->getOutput();
@@ -29,8 +32,12 @@ class SpecialWikiForum extends SpecialPage {
 		$user = $this->getUser();
 
 		// If user is blocked, s/he doesn't need to access this page
-		if ( $user->isBlocked() ) {
+		if ( $user->getBlock() ) {
 			throw new UserBlockedError( $user->getBlock() );
+		}
+		// Also check for global blocks
+		if ( $user->isBlockedGlobally() ) {
+			throw new UserBlockedError( $user->getGlobalBlock() );
 		}
 
 		$this->setHeaders();
@@ -55,7 +62,7 @@ class SpecialWikiForum extends SpecialPage {
 					$output .= $forum->show();
 				} else {
 					$output .= WikiForum::showErrorMessage( 'wikiforum-forum-not-found', 'wikiforum-forum-not-found-text' );
-					$output .= WikiForum::showOverview();
+					$output .= WikiForum::showOverview( $user );
 				}
 			} else {
 				$thread = WFThread::newFromName( $par );
@@ -63,7 +70,7 @@ class SpecialWikiForum extends SpecialPage {
 					$output .= $thread->show();
 				} else {
 					$output .= WikiForum::showErrorMessage( 'wikiforum-thread-not-found', 'wikiforum-thread-not-found-text' );
-					$output .= WikiForum::showOverview();
+					$output .= WikiForum::showOverview( $user );
 				}
 			}
 		} else {
@@ -82,10 +89,10 @@ class SpecialWikiForum extends SpecialPage {
 
 				if ( !$category ) { // show error message, category not found
 					$output .= WikiForum::showErrorMessage( 'wikiforum-cat-not-found', 'wikiforum-cat-not-found-text' );
-					$output .= WikiForum::showOverview();
+					$output .= WikiForum::showOverview( $user );
 
 				} else {
-					if ( wfReadOnly() ) {
+					if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
 						$output .= WikiForum::showErrorMessage( 'wikiforum-error-category', 'wikiforum-error-readonly' );
 						$output .= $category->show();
 
@@ -126,10 +133,10 @@ class SpecialWikiForum extends SpecialPage {
 
 				if ( !$forum ) { // show error message, forum not found
 					$output .= WikiForum::showErrorMessage( 'wikiforum-forum-not-found', 'wikiforum-forum-not-found-text' );
-					$output .= WikiForum::showOverview();
+					$output .= WikiForum::showOverview( $user );
 
 				} else {
-					if ( wfReadOnly() ) {
+					if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
 						$output .= WikiForum::showErrorMessage( 'wikiforum-error-forum', 'wikiforum-error-readonly' );
 						$output .= $forum->show();
 
@@ -174,10 +181,10 @@ class SpecialWikiForum extends SpecialPage {
 
 				if ( !$thread ) { // show error message, thread not found
 					$output .= WikiForum::showErrorMessage( 'wikiforum-thread-not-found', 'wikiforum-thread-not-found-text' );
-					$output .= WikiForum::showOverview();
+					$output .= WikiForum::showOverview( $user );
 
 				} else {
-					if ( wfReadOnly() ) {
+					if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
 						$output .= WikiForum::showErrorMessage( 'wikiforum-error-thread', 'wikiforum-error-readonly' );
 						$output .= $thread->show();
 
@@ -224,10 +231,10 @@ class SpecialWikiForum extends SpecialPage {
 
 				if ( !$reply ) { // show error message, reply not found
 					$output .= WikiForum::showErrorMessage( 'wikiforum-reply-not-found', 'wikiforum-reply-not-found-text' );
-					$output .= WikiForum::showOverview();
+					$output .= WikiForum::showOverview( $user );
 
 				} else {
-					if ( wfReadOnly() ) {
+					if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
 						$output .= WikiForum::showErrorMessage( 'wikiforum-error-thread', 'wikiforum-error-readonly' );
 						$output .= $reply->getThread()->show();
 					} else {
@@ -251,16 +258,16 @@ class SpecialWikiForum extends SpecialPage {
 			} else { // other actions
 				switch ( $action ) {
 					case 'addcategory':
-						$output .= WFCategory::showAddForm();
+						$output .= WFCategory::showAddForm( $user );
 						break;
 					case 'savenewcategory': // title
-						$output .= WFCategory::add( $title );
+						$output .= WFCategory::add( $title, $user );
 						break;
 					case 'search':
-						$output .= WikiForum::showSearchResults( $request->getText( 'query' ) );
+						$output .= WikiForum::showSearchResults( $request->getText( 'query' ), $user );
 						break;
 					default:
-						$output .= WikiForum::showOverview();
+						$output .= WikiForum::showOverview( $user );
 						break;
 				}
 			}

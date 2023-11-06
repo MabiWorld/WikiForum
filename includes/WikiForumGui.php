@@ -1,4 +1,8 @@
 <?php
+
+use MediaWiki\MediaWikiServices;
+use MediaWiki\User\UserIdentity;
+
 /**
  * Graphical User Interface (GUI) methods used by WikiForum extension.
  *
@@ -50,17 +54,18 @@ class WikiForumGui {
 	 * Builds the header row -- the breadcrumb navigation
 	 * (Overview > Category name > Forum > Thread)
 	 *
-	 * @param $links string: the actual overview/category/etc links
-	 * @param $additionalLinks string: more links to add on the other side - 'Add a new forum'-type links
+	 * @param string $links the actual overview/category/etc links
+	 * @param UserIdentity $user
+	 * @param string $additionalLinks more links to add on the other side - 'Add a new forum'-type links
 	 * @return string HTML
 	 */
-	static function showHeaderRow( $links, $additionalLinks = '' ) {
-		global $wgUser, $wgWikiForumAllowAnonymous;
+	static function showHeaderRow( $links, UserIdentity $user, $additionalLinks = '' ) {
+		global $wgWikiForumAllowAnonymous;
 
 		$output = '<table class="mw-wikiforum-headerrow"><tr><td class="mw-wikiforum-leftside">';
 		$output .= $links;
 
-		if ( strlen( $additionalLinks ) > 0 && ( $wgWikiForumAllowAnonymous || $wgUser->isLoggedIn() ) ) {
+		if ( strlen( $additionalLinks ) > 0 && ( $wgWikiForumAllowAnonymous || $user->isRegistered() ) ) {
 			$output .= '</td><td class="mw-wikiforum-rightside">' . $additionalLinks;
 		}
 
@@ -71,10 +76,10 @@ class WikiForumGui {
 	/**
 	 * Gets the footer row, in other words: pagination links.
 	 *
-	 * @param $page Integer: number of the current page
-	 * @param $maxissues Integer: amount of replies, fetched from the DB
-	 * @param $limit Integer: limit; this is also used for the SQL query
-	 * @param $params array: URL params to be passed, should have a thread or forum number
+	 * @param int $page number of the current page
+	 * @param int $maxissues amount of replies, fetched from the DB
+	 * @param int $limit limit; this is also used for the SQL query
+	 * @param array $params URL params to be passed, should have a thread or forum number
 	 * @return string HTML
 	 */
 	static function showFooterRow( $page, $maxissues, $limit, $params ) {
@@ -88,6 +93,17 @@ class WikiForumGui {
 
 			for ( $i = 1; $i < ( $maxissues / $limit ) + 1; $i++ ) {
 				$urlParams = array_merge( [ 'page' => $i ], $params );
+
+				if ( $i <= 9 ) {
+					$pageNumber = '0' . $i;
+				} else {
+					$pageNumber = $i;
+				}
+
+				$output = '<table class="mw-wikiforum-footerrow"><tr><td class="mw-wikiforum-leftside">' .
+				wfMessage( 'wikiforum-pages' )
+				->numParams( $pageNumber )->text() .
+				wfMessage( 'word-separator' )->plain();
 
 				if ( $i != $page + 1 ) {
 					$output .= '<a class="mw-wikiforum-pagenumber" href="' . htmlspecialchars( $specialPage->getFullURL( $urlParams ) ) . '">' . $i . '</a>';
@@ -142,8 +158,8 @@ class WikiForumGui {
 	 * @param string $title2
 	 * @param string $title3
 	 * @param string $title4
-	 * @param string $title5: optional, admin icons if given
-	 * @return string, HTML
+	 * @param string $title5 optional, admin icons if given
+	 * @return string HTML
 	 */
 	private static function showMainHeaderRow( $title1, $title2, $title3, $title4, $title5 = '' ) {
 		$output = '<tr class="mw-wikiforum-title"><th class="mw-wikiforum-title">' . $title1 . '</th>';
@@ -196,16 +212,15 @@ class WikiForumGui {
 	 * Show the bottom line of a thread or reply
 	 *
 	 * @param string $posted
+	 * @param User $user
 	 * @param string $buttons optional, admin icons if given
 	 * @return string HTML
 	 */
-	static function showBottomLine( $posted, $buttons = '' ) {
-		global $wgUser;
-
+	static function showBottomLine( $posted, User $user, $buttons = '' ) {
 		$output = '<table cellspacing="0" cellpadding="0" class="mw-wikiforum-posted">' .
 			'<tr><td class="mw-wikiforum-leftside">' . $posted . '</td>';
 
-		if ( $wgUser->isLoggedIn() ) {
+		if ( $user->isRegistered() ) {
 			$output .= '<td class="mw-wikiforum-rightside">' . $buttons . '</td>';
 		}
 
@@ -217,29 +232,35 @@ class WikiForumGui {
 	/**
 	 * Get the editor form for writing a new thread, a reply, etc.
 	 *
-	 * @param $showCancel: show the cancel button?
-	 * @param $params Array: URL parameter(s) to be passed to the form (i.e. array( 'thread' => $threadId ))
-	 * @param $input String: used to add extra input fields
-	 * @param $height String: height of the textarea, i.e. '10em'
-	 * @param $text_prev
-	 * @param $saveButton String: save button text
-	 * @return String HTML
+	 * @param bool $showCancel show the cancel button?
+	 * @param array $params URL parameter(s) to be passed to the form (i.e. array( 'thread' => $threadId ))
+	 * @param string $input used to add extra input fields
+	 * @param string $height height of the textarea, i.e. '10em'
+	 * @param string $text_prev
+	 * @param string $saveButton save button text
+	 * @param User $user
+	 * @return string HTML
 	 */
-	static function showWriteForm( $showCancel, $params, $input, $height, $text_prev, $saveButton ) {
-		global $wgOut, $wgUser, $wgWikiForumAllowAnonymous;
+	static function showWriteForm( $showCancel, $params, $input, $height, $text_prev, $saveButton, User $user ) {
+		global $wgWikiForumAllowAnonymous;
 
 		$output = '';
 
+		$requestContext = RequestContext::getMain();
+		$out = $requestContext->getOutput();
 		if ( ExtensionRegistry::getInstance()->isLoaded( 'WikiEditor' ) ) {
-			$editPage = new EditPage( new Article( SpecialPage::getTitleFor( 'WikiForum' ) ) );
-			WikiEditorHooks::editPageShowEditFormInitial( $editPage, $wgOut );
+			if ( MediaWikiServices::getInstance()->getUserOptionsLookup()->getOption( $user, 'usebetatoolbar' ) ) {
+				$out->addModuleStyles( 'ext.wikiEditor.styles' );
+				$out->addModules( 'ext.wikiEditor' );
+			}
+
 			$toolbar = '';
 		} else {
 			$toolbar = EditPage::getEditToolbar();
 		}
 
-		if ( $wgWikiForumAllowAnonymous || $wgUser->isLoggedIn() ) {
-			$wgOut->addModules( 'mediawiki.action.edit' ); // Required for the edit buttons to display
+		if ( $wgWikiForumAllowAnonymous || $user->isRegistered() ) {
+			$out->addModules( 'mediawiki.action.edit' ); // Required for the edit buttons to display
 
 			$output = '<form name="frmMain" method="post" action="' . htmlspecialchars( SpecialPage::getTitleFor( 'WikiForum' )->getFullURL( $params ) ) . '" id="writereply">
 			<table class="mw-wikiforum-frame" cellspacing="10">' . $input . '
@@ -249,8 +270,8 @@ class WikiForumGui {
 				<tr>
 					<td><textarea name="text" id="wpTextbox1" style="height: ' . $height . ';">' . str_replace('&', '&amp;', $text_prev) . '</textarea></td>
 				</tr>';
-			if ( WikiForum::useCaptcha() ) {
-				$output .= '<tr><td>' . WikiForum::getCaptcha( $wgOut ) . '</td></tr>';
+			if ( WikiForum::useCaptcha( $user ) ) {
+				$output .= '<tr><td>' . WikiForum::getCaptcha( $out ) . '</td></tr>';
 			}
 			$output .= '<tr>
 					<td>
@@ -276,7 +297,7 @@ class WikiForumGui {
 	 * @param string $titleValue value for the title input
 	 * @return string HTML the form
 	 */
-	static function showTopLevelForm( $url, $extraRow = '', $formTitle, $titlePlaceholder, $titleValue ) {
+	static function showTopLevelForm( $url, $extraRow, $formTitle, $titlePlaceholder, $titleValue ) {
 		return '
 		<form name="frmMain" method="post" action="' . $url . '" id="form">
 			<table class="mw-wikiforum-frame" cellspacing="10">

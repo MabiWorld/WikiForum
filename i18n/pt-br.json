@@ -1,10 +1,11 @@
 {
 	"@metadata": {
 		"authors": [
-			"Luckas",
-			"Luckas Blade",
+			"Eduardo Addad de Oliveira",
+			"Eduardoaddad",
 			"Felipe L. Ewald",
-			"Eduardo Addad de Oliveira"
+			"Luckas",
+			"Luckas Blade"
 		]
 	},
 	"wikiforum-desc": "Extensão para criar [[Special:WikiForum|fóruns]] no MediaWiki",
@@ -96,11 +97,15 @@
 	"wikiforum-move-thread": "Mover tópico",
 	"wikiforum-paste-thread": "Inserir tópico",
 	"wikiforum-quote": "Citar",
+	"action-wikiforum-admin": "adicionar, editar e excluir categorias e fóruns no [[Special:WikiForum|quadro de discussão]]",
 	"right-wikiforum-admin": "Adicione, edite e apague categorias e fóruns no [[Special:WikiForum|fórum de conversação]]",
+	"action-wikiforum-moderator": "editar e excluir tópicos e respostas no [[Special:WikiForum|quadro de discussão]]",
 	"right-wikiforum-moderator": "Edite e apague tópicos e respostas no [[Special:WikiForum|fórum de conversação]]",
 	"group-forumadmin": "Administradores do fórum",
 	"group-forumadmin-member": "{{GENDER:$1|administrador|administradora}} do fórum",
 	"grouppage-forumadmin": "{{ns:project}}:Administradores do fórum",
+	"group-forumadmin.css": "/* CSS colocado aqui afetará apenas os administradores do fórum */",
+	"group-forumadmin.js": "/* JS colocado aqui afetará apenas os administradores do fórum */",
 	"log-name-forum": "Registo do fórum",
 	"log-description-forum": "Regista os eventos do [[Special:WikiForum|WikiForum]]",
 	"logentry-forum-add-category": "$1 {{GENDER:$2|criou}} uma categoria nova, [$4 $5]",

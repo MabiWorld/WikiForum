@@ -1,8 +1,9 @@
 {
 	"@metadata": {
 		"authors": [
-			"පසිඳු කාවින්ද",
-			"פוילישער"
+			"Pacha Tchernof",
+			"פוילישער",
+			"පසිඳු කාවින්ද"
 		]
 	},
 	"wikiforum-anonymous": "אַנאנים",
@@ -10,5 +11,6 @@
 	"wikiforum-button-preview": "פֿאראויסקוק",
 	"wikiforum-save": "אויפֿהיטן",
 	"wikiforum-views": "באַקוקן",
+	"wikiforum-pages": "{{PLURAL:$1|בלאַט|בלעטער}}",
 	"wikiforum-add-category": "צולייגן קאטעגאריע"
 }

@@ -1,10 +1,13 @@
 <?php
 /**
- * Helper class for WikiForum extension, for showing the overview, parsing special text, etc
+ * Helper class for WikiForum extension, for showing the overview, parsing special text, etc.
  *
  * @file
  * @ingroup Extensions
  */
+
+use MediaWiki\MediaWikiServices;
+
 class WikiForum {
 
 	/**
@@ -13,6 +16,7 @@ class WikiForum {
 	 * @param string $errorTitleMsg message key
 	 * @param string $errorMessageMsg message key
 	 * @param string $errorIcon icon finename (optional)
+	 * @return string HTML
 	 */
 	static function showErrorMessage( $errorTitleMsg, $errorMessageMsg, $errorIcon = 'exclamation.png' ) {
 		global $wgExtensionAssetsPath;
@@ -31,10 +35,11 @@ class WikiForum {
 	 * Show an overview of all available categories and their forums.
 	 * Used in the special page class.
 	 *
-	 * @return HTML
+	 * @param User $user
+	 * @return string HTML
 	 */
-	static function showOverview() {
-		global $wgUser, $wgExtensionAssetsPath;
+	static function showOverview( User $user ) {
+		global $wgExtensionAssetsPath;
 
 		$output = '';
 
@@ -60,11 +65,11 @@ class WikiForum {
 		}
 
 		// Forum admins are allowed to add new categories
-		if ( $wgUser->isAllowed( 'wikiforum-admin' ) ) {
+		if ( $user->isAllowed( 'wikiforum-admin' ) ) {
 			$icon = '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/database_add.png" title="' . wfMessage( 'wikiforum-add-category' )->text() . '" /> ';
 			$menuLink = $icon . '<a href="' . htmlspecialchars( SpecialPage::getTitleFor( 'WikiForum' )->getFullURL( [ 'wfaction' => 'addcategory' ] ) ) . '">' .
 				wfMessage( 'wikiforum-add-category' )->text() . '</a>';
-			$output .= WikiForumGui::showHeaderRow( '', $menuLink );
+			$output .= WikiForumGui::showHeaderRow( '', $user, $menuLink );
 		}
 
 		return $output;
@@ -73,14 +78,13 @@ class WikiForum {
 	/**
 	 * Show the search results page.
 	 *
-	 * @param $what String: the search query string.
-	 * @return HTML output
+	 * @param string $what the search query string.
+	 * @param User $user
+	 * @return string HTML output
 	 */
-	static function showSearchResults( $what ) {
-		global $wgOut, $wgRequest, $wgUser, $wgLang;
-
+	static function showSearchResults( $what, User $user ) {
 		$output = WikiForumGui::showSearchbox();
-		$output .= WikiForumGui::showHeaderRow( '', '' );
+		$output .= WikiForumGui::showHeaderRow( '', $user );
 
 		if ( strlen( $what ) > 1 ) {
 			$i = 0;
@@ -221,13 +225,13 @@ class WikiForum {
 	/**
 	 * Return a user object from fields from the DB
 	 *
-	 * @param int $userID
+	 * @param int $actorID
 	 * @param string $userIP
 	 * @return User|bool
 	 */
-	static function getUserFromDB( $userID, $userIP ) {
-		if ( $userID ) {
-			return User::newFromID( $userID );
+	public static function getUserFromDB( $actorID, $userIP ) {
+		if ( $actorID ) {
+			return User::newFromActorId( $actorID );
 		} else {
 			return User::newFromName( $userIP, false );
 		}
@@ -237,18 +241,27 @@ class WikiForum {
 	 * Get the link to the specified user's userpage (and group membership)
 	 *
 	 * @param User $user user object
-	 * @return HTML
+	 * @return string HTML
 	 */
 	public static function showUserLink( User $user, $showTitle = true ) {
 		$username = $user->getName();
+		$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
 
 		if ( $user->isAnon() ) { // Do no further processing for anons, since anons cannot have groups.
-			return Linker::link( Title::makeTitle( NS_USER_TALK, $username ), $username );
+			return $linkRenderer->makeLink(
+				Title::makeTitle( NS_USER_TALK, $username ),
+				$username
+			);
 		}
 
-		$retVal = Linker::link( Title::makeTitle( NS_USER, $username ), $username );
+		$retVal = $linkRenderer->makeLink(
+			Title::makeTitle( NS_USER, $username ),
+			$username
+		);
 
-		$groups = $user->getEffectiveGroups();
+		$groups = MediaWikiServices::getInstance()
+			->getUserGroupManager()
+			->getUserEffectiveGroups( $user );
 		$groupText = '';
 
 		if ( $showTitle ) {
@@ -268,7 +281,7 @@ class WikiForum {
 			}
 		}
 
-		Hooks::run( 'WikiForumSig', [ &$groupText, $user ] );
+		MediaWikiServices::getInstance()->getHookContainer()->run( 'WikiForumSig', [ &$groupText, $user ] );
 
 		$retVal .= $groupText;
 
@@ -298,10 +311,14 @@ class WikiForum {
 		return $avatar;
 	}
 
+	/**
+	 * @param string $text
+	 * @return string HTML
+	 */
 	static function parseIt( $text ) {
 		global $wgOut;
 
-		$text = $wgOut->parse( $text );
+		$text = $wgOut->parseAsContent( $text );
 		$text = self::parseLinks( $text );
 		$text = self::parseQuotes( $text );
 
@@ -317,25 +334,14 @@ class WikiForum {
 	static function parseLinks( $text ) {
 		$text = preg_replace_callback(
 			'/\[thread#(.*?)\]/i',
-			'WikiForum::threadLinkFromID', // [ $this, 'getThreadTitle' ],
+			static function ( $id ) {
+				$thread = WFThread::newFromID( $id );
+				// fallback, got to return something
+				return $thread ? '<i>' . $thread->showLink() . '</i>' : $id;
+			},
 			$text
 		);
 		return $text;
-	}
-
-	/**
-	 * Get a link to a thread from it's ID, for parseLinks() above
-	 *
-	 * @param int $id
-	 * @return string|int
-	 */
-	static function threadLinkFromID( $id ) {
-		$thread = WFThread::newFromID( $id );
-		if ( $thread ) {
-			return '<i>' . $thread->showLink() . '</i>';
-		} else { // fallback, got to return something
-			return $id;
-		}
 	}
 
 	/**
@@ -363,40 +369,31 @@ class WikiForum {
 		return $text;
 	}
 
-	public static function deleteTags( $text ) {
-		$text = preg_replace(
-			'/\<WikiForumThread id=(.*?)\/\>/',
-			'&lt;WikiForumThread id=\1/&gt;',
-			$text
-		);
-		$text = preg_replace(
-			'/\<WikiForumList(.*)\/>/',
-			'&lt;WikiForumList \1/&gt;',
-			$text
-		);
-		return $text;
-	}
-
 	/**
 	 * Should we require the user to pass a captcha?
 	 *
+	 * @param User $user
 	 * @return bool
 	 */
-	public static function useCaptcha() {
-		global $wgCaptchaClass, $wgCaptchaTriggers, $wgUser;
+	public static function useCaptcha( User $user ) {
+		global $wgCaptchaClass, $wgCaptchaTriggers;
 		return $wgCaptchaClass &&
 			isset( $wgCaptchaTriggers['wikiforum'] ) &&
 			$wgCaptchaTriggers['wikiforum'] &&
-			!$wgUser->isAllowed( 'skipcaptcha' );
+			!$user->isAllowed( 'skipcaptcha' );
 	}
 
 	/**
 	 * Return the HTML for the captcha
 	 *
+	 * @param OutputPage $out
 	 * @return string
 	 */
 	public static function getCaptcha( $out ) {
-		wfSetupSession(); // NOTE: make sure we have a session. May be required for CAPTCHAs to work.
+		global $wgRequest;
+
+		// NOTE: make sure we have a session. May be required for CAPTCHAs to work.
+		$wgRequest->getSession()->persist();
 		$output = wfMessage( "captcha-sendemail" )->parseAsBlock();
 
 		$captcha = ConfirmEditHooks::getInstance();

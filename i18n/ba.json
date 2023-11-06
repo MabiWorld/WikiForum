@@ -1,16 +1,18 @@
 {
 	"@metadata": {
 		"authors": [
-			"Haqmar"
+			"Haqmar",
+			"Айсар",
+			"З. ӘЙЛЕ"
 		]
 	},
-	"wikiforum-by": "$1<br />от $2",
+	"wikiforum-by": "$4 көнө $5 ваҡыты<br />{{GENDER:$3|$2}} тарафынан",
 	"wikiforum-description": "Тасуирлама:",
 	"wikiforum-forum-name": "Форум $1",
 	"wikiforum-name": "Исем:",
-	"wikiforum-button-preview": "Алдан байҡау",
-	"wikiforum-preview": "Алдан байҡау",
-	"wikiforum-preview-with-title": "Алдан байҡау: $1",
+	"wikiforum-button-preview": "Ҡарап сығырға",
+	"wikiforum-preview": "Ҡарап сығырға",
+	"wikiforum-preview-with-title": "Ҡарап сығырға: $1",
 	"wikiforum-save": "Һаҡларға",
 	"wikiforum-search-thread": "Тармаҡ: $1",
 	"wikiforum-thread-deleted": "тармаҡ юйылды",
@@ -24,19 +26,19 @@
 	"wikiforum-latest-thread": "Һуңғы тармаҡ",
 	"wikiforum-forum": "Форум: $1 > $2",
 	"wikiforum-overview": "Байҡау",
-	"wikiforum-pages": "Биттәр:",
+	"wikiforum-pages": "{{PLURAL:$1|Бит|Биттәр}}:",
 	"wikiforum-thread-closed": "Тармаҡ ябыҡ",
 	"wikiforum-new-thread": "Яңы тармаҡ",
 	"wikiforum-edit-thread": "Тармаҡты мөхәррирләргә",
 	"wikiforum-delete-thread": "Тармаҡты юйырға",
 	"wikiforum-close-thread": "Тармаҡты ябырға",
-	"wikiforum-reopen-thread": "Тармаҡты яңынана асырға",
-	"wikiforum-write-reply": "Яуапларға",
+	"wikiforum-reopen-thread": "Тармаҡты ҡабаттан асырға",
+	"wikiforum-write-reply": "Яуап бирергә",
 	"wikiforum-edit-reply": "Яуапты мөхәррирләргә",
 	"wikiforum-delete-reply": "Яуапты юйырға",
 	"wikiforum-save-thread": "Тармаҡты һаҡларға",
 	"wikiforum-save-reply": "Яуапты һаҡларға",
 	"wikiforum-thread-title": "Һеҙҙең тармаҡ исеме",
-	"wikiforum-posted": "$1 - $2 ҡатнашыусыһы ҡүйҙы",
+	"wikiforum-posted": "$4 көндө $5 ваҡытта {{GENDER:$3|$2}} баҫтырҙы.",
 	"wikiforum-error-search": "Эҙләү хатаһы"
 }

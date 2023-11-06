@@ -1,11 +1,12 @@
 {
 	"@metadata": {
 		"authors": [
+			"FShbib",
 			"Meno25",
-			"ترجمان05",
-			"روخو",
 			"Shbib Al-Subaie",
-			"ديفيد"
+			"ترجمان05",
+			"ديفيد",
+			"روخو"
 		]
 	},
 	"wikiforum-desc": "ملحق [[Special:WikiForum|منتدى]] لميدياويكي",
@@ -43,7 +44,7 @@
 	"wikiforum-delete-thread": "حذف الخيط",
 	"wikiforum-close-thread": "إغلاق النقاش",
 	"wikiforum-reopen-thread": "إعادة فتح الخيط",
-	"wikiforum-write-reply": "اكتب ردًا...",
+	"wikiforum-write-reply": "اكتب ردا",
 	"wikiforum-edit-reply": "تعديل الرد",
 	"wikiforum-delete-reply": "حذف الرد",
 	"wikiforum-save-thread": "حفظ الخيط",
@@ -97,11 +98,15 @@
 	"wikiforum-move-thread": "نقل النقاش",
 	"wikiforum-paste-thread": "لصق الموضوع",
 	"wikiforum-quote": "اقتباس",
+	"action-wikiforum-admin": "إضافة وتعديل وحذف التصنيفات والمنتديات على [[Special:WikiForum|لوحة المناقشة]]",
 	"right-wikiforum-admin": "إضافة وتحرير وحذف التصنيفات والمنتديات في [[Special:WikiForum|لوحة المناقشة]]",
+	"action-wikiforum-moderator": "تحرير وحذف المواضيع والردود على [[Special:WikiForum|لوحة المناقشة]]",
 	"right-wikiforum-moderator": "تحرير وحذف المواضيع والردود في [[Special:WikiForum|لوحة المناقشة]]",
 	"group-forumadmin": "إداريو المنتدى",
 	"group-forumadmin-member": "{{GENDER:$1|إداري|إدارية}} منتدى",
 	"grouppage-forumadmin": "{{ns:project}}:إداريو المنتدى",
+	"group-forumadmin.css": "/* الأنماط المتراصة CSS المعروضة هنا ستؤثر على إداريي المنتدى فقط */",
+	"group-forumadmin.js": "/* الجافا سكريبت المعروضة هنا ستؤثر على إداريي المنتدى فقط */",
 	"log-name-forum": "سجل المنتدى",
 	"log-description-forum": "سجلات أحداث [[Special:WikiForum|منتدى الويكي]]",
 	"logentry-forum-add-category": "$1 {{GENDER:$2|أنشأ|أنشأت}} تصنيفا جديدا، [$4 $5]",
