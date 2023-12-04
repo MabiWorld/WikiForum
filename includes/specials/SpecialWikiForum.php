@@ -43,8 +43,7 @@ class SpecialWikiForum extends SpecialPage {
 		$this->setHeaders();
 
 		// Add CSS & JS
-		$out->addModuleStyles( 'ext.wikiForum' );
-		$out->addModuleScripts( 'ext.wikiForum.js' );
+		$out->addModules( 'ext.wikiForum' );
 		$out->addModules( 'mediawiki.page.gallery' ); // needed to show galleries correctly. Should be a better way of doing this so it's only loaded if there is a gallery, but I can't find it.
 
 		$output = '';

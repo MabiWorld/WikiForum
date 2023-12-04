@@ -163,7 +163,7 @@ class WikiForum {
 			$category_ids = [];
 		}
 
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = wfGetDB( DB_REPLICA );
 		if ( isset( $filters[ 'categories' ] ) ) {
 			// Convert categories to category_ids.
 			$sqlCategories = $dbr->select(

@@ -544,12 +544,11 @@ class WFThread extends ContextSource {
 			return $error . $this->show();
 		}
 
-<<<<<<< HEAD
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = wfGetDB( DB_PRIMARY );
 		$dbUpdate = [
 			'wft_thread_name' => $title,
-			'wft_edit_timestamp' => wfTimestampNow(),
-			'wft_edit_user' => $user->getId(),
+			'wft_edit_timestamp' => $dbw->timestamp( wfTimestampNow() ),
+			'wft_edit_actor' => $user->getActorId(),
 			'wft_edit_user_ip' => $this->getRequest()->getIP(),
 		];
 		if ( $text ) $dbUpdate['wft_text'] = $text;
@@ -557,18 +556,6 @@ class WFThread extends ContextSource {
  		$result = $dbw->update(
  			'wikiforum_threads',
 			$dbUpdate,
-=======
-		$dbw = wfGetDB( DB_PRIMARY );
-		$result = $dbw->update(
-			'wikiforum_threads',
-			[
-				'wft_thread_name' => $title,
-				'wft_text' => $text,
-				'wft_edit_timestamp' => $dbw->timestamp( wfTimestampNow() ),
-				'wft_edit_actor' => $user->getActorId(),
-				'wft_edit_user_ip' => $this->getRequest()->getIP(),
-			],
->>>>>>> origin/REL1_41
 			[ 'wft_thread' => $this->getId() ],
 			__METHOD__
 		);
@@ -660,23 +647,13 @@ class WFThread extends ContextSource {
 
 		$olderTimestamp = wfTimestamp( TS_MW, strtotime( '-' . $dayDefinitionNew . ' days' ) );
 
-<<<<<<< HEAD
-		$imagePath = $wgExtensionAssetsPath . '/WikiForum/resources/images';
-		if ( $this->isClosed() ) {
-			return '<img src="' . $imagePath . '/lock.png" title="' . wfMessage( 'wikiforum-thread-closed' )->text() . '" /> ';
-		} elseif ( $this->getUpdatedTimestamp() > $olderTimestamp ) {
-			return '<img src="' . $imagePath . '/new.png" title="' . wfMessage( 'wikiforum-new-thread' )->text() . '" /> ';
-		} elseif ( $this->isSticky() ) {
-			return '<img src="' . $imagePath . '/tag_blue.png" title="' . wfMessage( 'wikiforum-sticky' )->text() . '" /> ';
-=======
 		$imagePath = $extensionAssetsPath . '/WikiForum/resources/images';
 		if ( $this->isSticky() ) {
 			return '<img src="' . $imagePath . '/tag_blue.png" title="' . $this->msg( 'wikiforum-sticky' )->text() . '" /> ';
 		} elseif ( $this->isClosed() ) {
 			return '<img src="' . $imagePath . '/lock.png" title="' . $this->msg( 'wikiforum-thread-closed' )->text() . '" /> ';
-		} elseif ( $this->getPostedTimestamp() > $olderTimestamp ) {
+		} elseif ( $this->getUpdatedTimestamp() > $olderTimestamp ) {
 			return '<img src="' . $imagePath . '/new.png" title="' . $this->msg( 'wikiforum-new-thread' )->text() . '" /> ';
->>>>>>> origin/REL1_41
 		} else {
 			return '<img src="' . $imagePath . '/note.png" title="' . $this->msg( 'wikiforum-thread' )->text() . '" /> ';
 		}
@@ -723,17 +700,12 @@ class WFThread extends ContextSource {
 			$output .= WikiForum::showErrorMessage( 'wikiforum-thread-closed', 'wikiforum-error-thread-closed', 'lock.png' );
 		}
 
-<<<<<<< HEAD
-=======
 		$output .= WikiForumGui::showHeaderRow( $this->showHeaderLinks(), $user, $menuLink );
 
 		// Add topic name to the title
 		$out->setPageTitle( $this->msg( 'wikiforum-topic-name', $this->getName() )->text() );
 		$out->setHTMLTitle( $this->msg( 'wikiforum-topic-name', $this->getName() )->text() );
 
-		$output .= $this->showHeader();
-
->>>>>>> origin/REL1_41
 		// limiting
 		$maxPerPage = intval( $this->msg( 'wikiforum-max-replies-per-page' )->inContentLanguage()->plain() );
 
@@ -751,8 +723,6 @@ class WFThread extends ContextSource {
 		if ( $maxPerPage > 0 ) {
 			$replies = array_slice( $replies, $limit_page * $maxPerPage, $maxPerPage );
 		}
-
-		$output .= WikiForumGui::showHeaderRow( $this->showHeaderLinks(), $menuLink );
 
 
 		// Add topic name to the title
@@ -774,7 +744,6 @@ class WFThread extends ContextSource {
 				$maxPerPage,
 				[ 'thread' => $this->getId() ]
 			);
-			$output .= $footerRow;
 		}
 
 		$output .= $this->showHeader();
@@ -888,27 +857,17 @@ class WFThread extends ContextSource {
 		$forum = $this->getForum();
 
 		if (
-<<<<<<< HEAD
-			$user->getId() == $this->getPostedById() ||
+			$user->getActorId() == $this->getPostedById() ||
 			$isMod
 		) {
 			$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'editthread', 'thread' => $this->getId() ] ) ) . '">';
-			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_edit.png" title="' . wfMessage( 'wikiforum-edit-thread' )->text() . '" />';
+			$editButtons .= '<img src="' . $extensionAssetsPath . '/WikiForum/resources/images/note_edit.png" title="' . wfMessage( 'wikiforum-edit-thread' )->text() . '" />';
 			if ( $isMod ) {
 				$editButtons .= '</a> <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'movethread', 'thread' => $this->getId() ] ) ) . '">';
-				$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_go.png" title="' . wfMessage( 'wikiforum-move-thread' )->text() . '" />';
+				$editButtons .= '<img src="' . $extensionAssetsPath . '/WikiForum/resources/images/note_go.png" title="' . wfMessage( 'wikiforum-move-thread' )->text() . '" />';
 			}
 			$editButtons .= '</a> <a href="javascript:confirmNavigation(\'' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'deletethread', 'thread' => $this->getId() ] ) ) . '\',\'' . htmlspecialchars( wfMessage( 'wikiforum-delete-thread-confirmation' ) ) . '\')">';
-			$editButtons .= '<img src="' . $wgExtensionAssetsPath . '/WikiForum/resources/images/note_delete.png" title="' . wfMessage( 'wikiforum-delete-thread' )->text() . '" />';
-=======
-			$user->getActorId() == $this->getPostedById() ||
-			$user->isAllowed( 'wikiforum-moderator' )
-		) {
-			$editButtons .= ' <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'editthread', 'thread' => $this->getId() ] ) ) . '">';
-			$editButtons .= '<img src="' . $extensionAssetsPath . '/WikiForum/resources/images/note_edit.png" title="' . $this->msg( 'wikiforum-edit-thread' )->escaped() . '" />';
-			$editButtons .= '</a> <a href="' . htmlspecialchars( $specialPage->getFullURL( [ 'wfaction' => 'deletethread', 'thread' => $this->getId() ] ) ) . '">';
-			$editButtons .= '<img src="' . $extensionAssetsPath . '/WikiForum/resources/images/note_delete.png" title="' . $this->msg( 'wikiforum-delete-thread' )->escaped() . '" />';
->>>>>>> origin/REL1_41
+			$editButtons .= '<img src="' . $extensionAssetsPath . '/WikiForum/resources/images/note_delete.png" title="' . wfMessage( 'wikiforum-delete-thread' )->text() . '" />';
 			$editButtons .= '</a> ';
 
 			// Only moderators can lock and reopen threads
@@ -1038,7 +997,8 @@ class WFThread extends ContextSource {
 		}
 
 		if ( $result ) {
-			return $thread->show();
+			//return $thread->show();
+			return '<meta http-equiv="refresh" content="0; URL=' . $thread->getURL() . '" />';
 		} else {
 			return WikiForum::showErrorMessage( 'wikiforum-error-add', 'wikiforum-error-general' );
 		}
