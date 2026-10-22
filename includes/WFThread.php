@@ -23,7 +23,7 @@ class WFThread extends ContextSource {
 	 * @return self|false
 	 */
 	public static function newFromID( $id ) {
-		$dbr = wfGetDB( DB_REPLICA );
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 
 		$data = $dbr->selectRow(
 			'wikiforum_threads',
@@ -60,7 +60,7 @@ class WFThread extends ContextSource {
 		// use friggin' underscores...
 		$titleText = str_replace( '_', ' ', $titleText );
 
-		$dbr = wfGetDB( DB_REPLICA );
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 		$data = $dbr->selectRow(
 			'wikiforum_threads',
 			'*',
@@ -301,7 +301,7 @@ class WFThread extends ContextSource {
 	 */
 	function getReplies() {
 		if ( !$this->replies ) {
-			$dbr = wfGetDB( DB_REPLICA );
+			$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 
 			$sqlReplies = $dbr->select(
 				'wikiforum_replies',
@@ -350,7 +350,7 @@ class WFThread extends ContextSource {
 			return $error . $this->show();
 		}
 
-		$dbw = wfGetDB( DB_PRIMARY );
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
 		$dbw->delete(
 			'wikiforum_threads',
 			[ 'wft_thread' => $this->getId() ],
@@ -419,7 +419,7 @@ class WFThread extends ContextSource {
 			$error = WikiForum::showErrorMessage( 'wikiforum-error-thread-reopen', 'wikiforum-error-general' );
 			return $error . $this->show();
 		}
-		$dbw = wfGetDB( DB_PRIMARY );
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
 		$result = $dbw->update(
 			'wikiforum_threads',
 			[
@@ -449,7 +449,7 @@ class WFThread extends ContextSource {
 			return $error . $this->show();
 		}
 
-		$dbw = wfGetDB( DB_PRIMARY );
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
 		$result = $dbw->update(
 			'wikiforum_threads',
 			[
@@ -498,7 +498,7 @@ class WFThread extends ContextSource {
 			return $error . $this->show();
 		}
 
-		$dbw = wfGetDB( DB_PRIMARY );
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
 		$result = $dbw->update(
 			'wikiforum_threads',
 			[ 'wft_sticky' => $value ],
@@ -521,10 +521,7 @@ class WFThread extends ContextSource {
 	function edit( $title, $text = null ) {
 		$user = $this->getUser();
 
-		if (
-			$text && $title && strlen( $text ) == 1 ||
-			strlen( $title ) == 1
-		) {
+		if ( strlen( $text ) <= 1 || strlen( $title ) <= 1 ) {
 			$error = WikiForum::showErrorMessage( 'wikiforum-error-edit', 'wikiforum-error-no-text-or-title' );
 			return $error . $this->showEditor();
 		}
@@ -544,7 +541,7 @@ class WFThread extends ContextSource {
 			return $error . $this->show();
 		}
 
-		$dbw = wfGetDB( DB_PRIMARY );
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
 		$dbUpdate = [
 			'wft_thread_name' => $title,
 			'wft_edit_timestamp' => $dbw->timestamp( wfTimestampNow() ),
@@ -731,7 +728,7 @@ class WFThread extends ContextSource {
 
 		$footerRow;
 		if ( $maxPerPage > 0 ) {
-			$dbr = wfGetDB( DB_REPLICA );
+			$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 			$countReplies = $dbr->selectRow(
 				'wikiforum_replies',
 				'COUNT(*) AS count',
@@ -765,7 +762,7 @@ class WFThread extends ContextSource {
 		}
 
 		if ( !MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
-			$dbw = wfGetDB( DB_PRIMARY );
+			$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
 			$dbw->update(
 				'wikiforum_threads',
 				[ 'wft_view_count = wft_view_count + 1' ],
@@ -950,7 +947,7 @@ class WFThread extends ContextSource {
 			}
 		}
 
-		$dbw = wfGetDB( DB_PRIMARY );
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_PRIMARY );
 		$timestamp = wfTimestampNow();
 
 		$result = $dbw->insert(

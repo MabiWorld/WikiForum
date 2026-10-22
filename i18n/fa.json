@@ -4,12 +4,15 @@
 			"Alirezaaa",
 			"Armin1392",
 			"Beginneruser",
+			"Ebrahim",
 			"Ebraminio",
 			"Huji",
 			"Jeeputer",
 			"Mjbmr",
 			"Omidh",
-			"Reza1615"
+			"Reza1615",
+			"LordProfo",
+			"LProfo"
 		]
 	},
 	"wikiforum-desc": "[[Special:WikiForum|انجمن]]  برای مدیاویکی",
@@ -60,7 +63,7 @@
 	"wikiforum-forum-not-found": "انجمن یافت نشد",
 	"wikiforum-forum-not-found-text": "انجمن وجود ندارد.",
 	"wikiforum-thread-not-found": "موضوع یافت نشد",
-	"wikiforum-thread-not-found-text": "موضوع وجود ندارد یا پاک شده‌است.",
+	"wikiforum-thread-not-found-text": "موضوع وجود ندارد یا پاک شده است.",
 	"wikiforum-reply-not-found": "پاسخ یافت نشد",
 	"wikiforum-reply-not-found-text": "پاسخ وجود ندارد.",
 	"wikiforum-error-thread-reopen": "خطا هنگام بازگشایی موضوع",
@@ -71,17 +74,17 @@
 	"wikiforum-error-not-found": "شیء یافت نشد.",
 	"wikiforum-error-no-text-or-title": "عنوان یا متن به‌درستی پر نشده‌اند.",
 	"wikiforum-error-bad-title": "عنوان عرضه شده شامل مشخصه‌های نامعتبر است.",
-	"wikiforum-error-no-reply": "پاسخ بخ درستی پر نشده‌است.",
+	"wikiforum-error-no-reply": "پاسخ بخ درستی پر نشده است.",
 	"wikiforum-error-double-post": "شما از پیش این پاسخ را ارسال کرده‌اید!",
 	"wikiforum-error-thread-closed": "این موضوع در حال حاضر بسته است. امکان افزودن پاسخ‌های جدید در اینجا وجود ندارد.",
 	"wikiforum-error-title-already-exists": "یک موضوع از پیش با عنوان مشخص‌شده وجود دارد. لطفاً نام دیگری انتخاب کنید.",
-	"wikiforum-error-readonly": "پایگاه‌های داده به‌عنوان فقط خواندنی نشانه‌گذاری شده‌است. شما نمی‌توانید هیچ کار نوشتنی در این زمان انجام دهید.",
+	"wikiforum-error-readonly": "پایگاه‌های داده به‌عنوان فقط خواندنی نشانه‌گذاری شده است. شما نمی‌توانید هیچ کار نوشتنی در این زمان انجام دهید.",
 	"wikiforum-error-search-missing-query": "شما باید یک کلمه به ما بدهید تا جستجو کنیم!",
 	"wikiforum-error-search": "خطای جستجو",
 	"wikiforum-error-delete": "خطا در حین حذف",
 	"wikiforum-error-sticky": "خطا هنگام تغییر ویژگی دشوار",
 	"wikiforum-error-move-thread": "خطا در حین انتقال موضوع",
-	"wikiforum-error-add": "خطا در حین اضافه کردن",
+	"wikiforum-error-add": "خطا در هنگام افزودن",
 	"wikiforum-error-edit": "خطا در حین ویرایش",
 	"wikiforum-error-write": "خطا هنگام نوشتن",
 	"wikiforum-error-category": "خطای رده",
@@ -115,5 +118,5 @@
 	"wikiforum-category-preload": "عنوان رده‌تان",
 	"wikiforum-must-supply-thread": "شما باید یک شناسهٔ موضوع تهیه کنید.",
 	"wikiforum-captcha": "برای کمک به حفاظت ویکی در برابر هرزنامه‌های خودکار، از شما می‌خواهیم پرسش سادهٔ زیر را حل و جواب را در جعبه وارد کنید ([[Special:Captcha/help|اطلاعات بیشتر]]):",
-	"wikiforum-error-captcha": "خطا - کپچا نادرست یا وارد نشده‌است"
+	"wikiforum-error-captcha": "خطا - کپچا نادرست یا وارد نشده است"
 }
